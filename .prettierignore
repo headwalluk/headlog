@@ -5,3 +5,5 @@ logs
 .env.*
 package-lock.json
 schema.sql
+
+ecosystem.config.js
