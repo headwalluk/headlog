@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-12-07
+
+### Added
+
+- **API Query Design Documentation**: Comprehensive design for querying log records via REST API
+  - `docs/api-querying-design.md` with dual approach strategy
+  - Predefined security query patterns (wp-vuln-probe, sql-injection, directory-traversal, etc.)
+  - Field-based ad-hoc query support design
+  - Three-phase implementation roadmap
+  - Security considerations and rate limiting strategies
+  - Performance benchmarks and optimization triggers
+  - 12 predefined security patterns for botnet/attack detection
+
+### Removed
+
+- Obsolete `schema.sql` file (replaced by automated migration system)
+
+### Fixed
+
+- Lint indentation issues in `src/server.js`
+
+## [1.0.0] - 2025-12-07
+
+### Added
+
+- **Production Release**: First stable release, production-ready
+- **Security Hardening**: `.env` file permission validation on startup
+  - Checks for 600 or 400 permissions
+  - Exits with detailed error if too permissive
+  - `SKIP_DOTENV_PERMISSION_CHECK` bypass option for compatibility
+- **README Enhancements**: 
+  - Version, license, Node version, and test status badges
+  - Removed development warning
+  - Project marked as production-ready
+
+### Changed
+
+- All tests passing (19 tests)
+- Code formatting and linting cleanup
+
+## [0.3.0] - 2025-12-07
+
+### Added
+
+- **Rate Limiting**: IP-based request rate limiting before authentication
+  - `@fastify/rate-limit` plugin integration
+  - Configurable limits (default: 100 requests/minute per IP)
+  - Returns 429 with X-RateLimit headers
+  - Runs before authentication to save CPU on bcrypt operations
+  - Environment variables: `RATE_LIMIT_ENABLED`, `RATE_LIMIT_MAX`, `RATE_LIMIT_WINDOW`, `RATE_LIMIT_CACHE`, `RATE_LIMIT_ALLOWLIST`
+  - `docs/rate-limiting.md` - Comprehensive strategy analysis
+  - `docs/querying-logs.md` - Database query strategies and security analysis examples
+
+### Changed
+
+- Rate limiting applied before authentication middleware for security optimization
+
+## [0.2.1] - 2025-12-07
+
+### Added
+
+- **API Key Security**: Bcrypt hashing for API keys
+  - Keys hashed with 10 salt rounds before storage
+  - Authentication uses bcrypt.compare() for secure validation
+  - Updated CLI tools to support hashed keys
+  - Migration adds `hashed_key` column to `api_keys` table
+
+### Changed
+
+- API key storage moved from plaintext to bcrypt hashed
+- CLI tools updated to work with hashed keys
+
 ## [0.2.0] - 2025-12-07
 
 ### Added
@@ -82,4 +154,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**Note:** This project is currently in active development. Version 1.0.0 will be released when Phase #1 is complete and production-ready.
+**Note:** Version 1.0.0 released on 2025-12-07. Project is production-ready and deployed.
