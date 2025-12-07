@@ -73,10 +73,11 @@ async function websiteRoutes(fastify) {
         });
       }
 
-      return reply.code(200).send({
-        status: 'ok',
-        message: 'Website updated successfully'
-      });
+      // Fetch and return updated website
+      const { getWebsiteByDomain } = require('../services/websiteService');
+      const website = await getWebsiteByDomain(domain);
+
+      return reply.code(200).send(website);
     } catch (error) {
       console.error('Update website error:', error);
       return reply.code(500).send({

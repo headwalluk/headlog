@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-12-07
+
+### Added
+
+- **Database Migrations**: Custom migration system with version alignment
+  - `schema/` directory for versioned SQL migration files
+  - `schema_migrations` tracking table
+  - Auto-run on server startup (worker 0 only)
+  - CLI commands: `schema:migrate`, `schema:status`, `schema:history`
+  - Comprehensive documentation in `docs/database-migrations.md`
+  - Smart SQL statement parser handling comments and multi-line statements
+  - `AUTO_RUN_MIGRATIONS_DISABLED` environment variable
+
+- **Testing System**: Complete API integration tests using Node.js built-in test runner
+  - `tests/api.test.js` - Main test suite with quick/complete modes
+  - `tests/helpers.js` - Test utilities and fixtures
+  - 19 comprehensive tests covering all API endpoints
+  - Quick mode (4 smoke tests) and Complete mode (19 tests)
+  - npm scripts: `test`, `test:quick`, `test:complete`
+  - Support for gzip compression testing
+  - Automatic test data cleanup
+
+### Changed
+
+- Empty log array now returns `400 Bad Request` (was accepting empty arrays)
+- `PUT /websites/:domain` now returns updated website object (was returning status message only)
+- Improved error logging in migration execution with statement-level error reporting
+
+### Fixed
+
+- Migration SQL parsing to handle comments and complex statements properly
+- Boolean value handling in tests (MySQL returns `1`/`0` instead of `true`/`false`)
+
+## [0.1.0] - 2025-12-07
+
 ### Phase #1 - Core Ingestion & Storage
 
 #### Added

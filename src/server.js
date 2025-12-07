@@ -6,6 +6,7 @@ const { authenticate } = require('./middleware/auth');
 const logRoutes = require('./routes/logs');
 const websiteRoutes = require('./routes/websites');
 const { initHousekeeping } = require('./housekeeping/tasks');
+const { runMigrations } = require('./services/migrationService');
 
 // Initialize Fastify
 const app = fastify({
@@ -41,6 +42,21 @@ async function start() {
 
     // Initialize database connection
     await initDatabase();
+
+    // Run migrations (only on worker 0, unless disabled)
+    if (config.pm2.isWorkerZero && !config.migrations.autoRunDisabled) {
+      app.log.info('Running database migrations...');
+      const migrationResult = await runMigrations(app.log);
+
+      if (!migrationResult.success) {
+        app.log.error('Database migrations failed. Cannot start server.');
+        process.exit(1);
+      }
+
+      app.log.info('Database migrations completed successfully');
+    } else if (config.migrations.autoRunDisabled) {
+      app.log.warn('Auto-run migrations disabled (AUTO_RUN_MIGRATIONS_DISABLED=true)');
+    }
 
     // Health check endpoint (no auth required)
     app.get('/health', async (request, reply) => {

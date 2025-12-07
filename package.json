@@ -1,12 +1,18 @@
 {
   "name": "headlog",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Centralised Apache log aggregation system",
   "main": "src/server.js",
   "scripts": {
     "start": "NODE_ENV=production node src/server.js",
     "dev": "NODE_ENV=development nodemon src/server.js",
     "cli": "node cli.js",
+    "migrate": "node cli.js schema:migrate",
+    "migrate:status": "node cli.js schema:status",
+    "migrate:history": "node cli.js schema:history",
+    "test": "node tests/api.test.js --type=complete",
+    "test:quick": "node tests/api.test.js --type=quick",
+    "test:complete": "node tests/api.test.js --type=complete",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,json,md}\""

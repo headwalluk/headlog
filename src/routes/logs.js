@@ -18,6 +18,13 @@ async function logRoutes(fastify) {
         });
       }
 
+      if (logRecords.length === 0) {
+        return reply.code(400).send({
+          error: 'Bad Request',
+          message: 'Log array cannot be empty'
+        });
+      }
+
       // Process logs
       const processed = await ingestLogs(logRecords);
 

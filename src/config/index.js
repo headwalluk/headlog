@@ -22,7 +22,7 @@ function parseIntEnv(value, defaultValue) {
  * @param {boolean} defaultValue
  * @returns {boolean}
  */
-function _parseBoolEnv(value, defaultValue) {
+function parseBoolEnv(value, defaultValue) {
   if (value === undefined || value === null) return defaultValue;
   return value === 'true' || value === '1';
 }
@@ -66,6 +66,12 @@ const config = {
   pm2: {
     appInstance: process.env.NODE_APP_INSTANCE || '0',
     isWorkerZero: (process.env.NODE_APP_INSTANCE || '0') === '0'
+  },
+
+  // Migrations
+  migrations: {
+    autoRunDisabled: parseBoolEnv(process.env.AUTO_RUN_MIGRATIONS_DISABLED, false),
+    directory: 'schema'
   }
 };
 
