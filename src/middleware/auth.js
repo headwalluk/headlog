@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const { getPool } = require('../config/database');
 
 /**
@@ -26,13 +27,12 @@ async function authenticate(request, reply) {
     });
   }
 
-  // Query database for valid, active key
+  // Query database for all active keys (we'll compare hashes)
   const pool = getPool();
 
   try {
     const [rows] = await pool.query(
-      'SELECT id, description FROM api_keys WHERE `key` = ? AND is_active = 1',
-      [token]
+      'SELECT id, `key`, description FROM api_keys WHERE is_active = 1'
     );
 
     if (rows.length === 0) {
@@ -42,11 +42,31 @@ async function authenticate(request, reply) {
       });
     }
 
+    // Find matching key by comparing hashes
+    let matchedKey = null;
+    for (const row of rows) {
+      const isMatch = await bcrypt.compare(token, row.key);
+      if (isMatch) {
+        matchedKey = row;
+        break;
+      }
+    }
+
+    if (!matchedKey) {
+      return reply.code(401).send({
+        error: 'Unauthorized',
+        message: 'Invalid or inactive API key'
+      });
+    }
+
     // Attach key info to request for downstream use
-    request.apiKey = rows[0];
+    request.apiKey = {
+      id: matchedKey.id,
+      description: matchedKey.description
+    };
 
     // Update last_used_at timestamp (async, don't await - fire and forget)
-    pool.query('UPDATE api_keys SET last_used_at = NOW() WHERE id = ?', [rows[0].id]).catch(err => {
+    pool.query('UPDATE api_keys SET last_used_at = NOW() WHERE id = ?', [matchedKey.id]).catch(err => {
       console.error('Failed to update last_used_at:', err.message);
     });
   } catch (error) {

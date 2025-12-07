@@ -45,6 +45,7 @@ console.log(`\n🧪 Running ${testType} tests...\n`);
 
 // Global test state
 let testApiKey = null;
+let testApiKeyId = null;
 
 // Setup: Initialize database and wait for server
 before(async () => {
@@ -116,7 +117,9 @@ describe('Quick Tests - Smoke Tests', { skip: !isQuick && !isComplete }, () => {
 
   test('Can create and use API key for single log ingestion', async () => {
     // Create test API key
-    testApiKey = await createTestApiKey();
+    const apiKeyData = await createTestApiKey();
+    testApiKey = apiKeyData.key;
+    testApiKeyId = apiKeyData.id;
     assert(testApiKey.length === 40, 'API key should be 40 characters');
 
     // Generate single log record
@@ -167,8 +170,8 @@ describe('Complete Tests - Authentication', { skip: !isComplete }, () => {
     const { getPool } = require('../src/config/database');
     const pool = getPool();
 
-    // Deactivate the key
-    await pool.query('UPDATE api_keys SET is_active = 0 WHERE `key` = ?', [testApiKey]);
+    // Deactivate the key using ID
+    await pool.query('UPDATE api_keys SET is_active = 0 WHERE id = ?', [testApiKeyId]);
 
     const response = await request({
       method: 'GET',
@@ -181,7 +184,7 @@ describe('Complete Tests - Authentication', { skip: !isComplete }, () => {
     assert(response.status === 401, `Expected 401, got ${response.status}`);
 
     // Reactivate for other tests
-    await pool.query('UPDATE api_keys SET is_active = 1 WHERE `key` = ?', [testApiKey]);
+    await pool.query('UPDATE api_keys SET is_active = 1 WHERE id = ?', [testApiKeyId]);
   });
 });
 
@@ -372,7 +375,8 @@ describe('Complete Tests - Website Management', { skip: !isComplete }, () => {
 
 describe('Complete Tests - Cleanup', { skip: !isComplete }, () => {
   test('Delete test API key', async () => {
-    await deleteApiKey(testApiKey);
+    // Delete test keys by description pattern
+    await deleteApiKey('Test API key%');
 
     // Verify it no longer works
     const response = await request({

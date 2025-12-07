@@ -34,8 +34,8 @@ Headlog replaces brittle shell scripts with a robust JSON-based log pipeline. Fl
 │  ~50 websites   │      │  ~50 websites   │      │  ~50 websites   │
 └────────┬────────┘      └────────┬────────┘      └────────┬────────┘
          │                        │                        │
-         │ HTTPS + Gzip          │ HTTPS + Gzip          │ HTTPS + Gzip
-         │ Bearer Token          │ Bearer Token          │ Bearer Token
+         │ HTTPS + Gzip           │ HTTPS + Gzip           │ HTTPS + Gzip
+         │ Bearer Token           │ Bearer Token           │ Bearer Token
          │                        │                        │
          └────────────────────────┼────────────────────────┘
                                   │

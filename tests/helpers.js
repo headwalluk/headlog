@@ -99,32 +99,34 @@ async function request(options) {
 
 /**
  * Create a test API key via CLI
- * @returns {Promise<string>} API key
+ * @returns {Promise<{key: string, id: number}>} Object with plaintext key and database ID
  */
 async function createTestApiKey() {
+  const bcrypt = require('bcrypt');
   const { generateApiKey } = require('../src/utils/generateApiKey');
   const { getPool } = require('../src/config/database');
 
   const key = generateApiKey();
+  const keyHash = await bcrypt.hash(key, 10);
   const pool = getPool();
 
-  await pool.query('INSERT INTO api_keys (`key`, description) VALUES (?, ?)', [
-    key,
+  const [result] = await pool.query('INSERT INTO api_keys (`key`, description) VALUES (?, ?)', [
+    keyHash,
     'Test API key - auto-generated'
   ]);
 
-  return key;
+  return { key, id: result.insertId }; // Return plaintext key and ID
 }
 
 /**
- * Delete an API key
- * @param {string} key - API key to delete
+ * Delete an API key by description pattern
+ * @param {string} descriptionPattern - Description pattern to match (uses LIKE)
  */
-async function deleteApiKey(key) {
+async function deleteApiKey(descriptionPattern = 'Test API key%') {
   const { getPool } = require('../src/config/database');
   const pool = getPool();
 
-  await pool.query('DELETE FROM api_keys WHERE `key` = ?', [key]);
+  await pool.query('DELETE FROM api_keys WHERE description LIKE ?', [descriptionPattern]);
 }
 
 /**

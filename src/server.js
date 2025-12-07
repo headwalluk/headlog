@@ -12,19 +12,19 @@ const { runMigrations } = require('./services/migrationService');
 const app = fastify({
   logger: config.isDevelopment
     ? {
-      level: config.logging.level,
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss',
-          ignore: 'pid,hostname',
-          singleLine: true
+        level: config.logging.level,
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            translateTime: 'HH:MM:ss',
+            ignore: 'pid,hostname',
+            singleLine: true
+          }
         }
       }
-    }
     : {
-      level: config.logging.level
-    },
+        level: config.logging.level
+      },
   trustProxy: true,
   bodyLimit: config.server.bodyLimit
 });

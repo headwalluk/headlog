@@ -3,6 +3,7 @@
 // Load config early (validates DB credentials)
 require('./src/config');
 const { Command } = require('commander');
+const bcrypt = require('bcrypt');
 const { getPool, initDatabase, closeDatabase } = require('./src/config/database');
 const { generateApiKey } = require('./src/utils/generateApiKey');
 const {
@@ -30,8 +31,11 @@ program
       const key = generateApiKey();
       const description = options.description || null;
 
+      // Hash the key before storing (bcrypt with 10 rounds)
+      const keyHash = await bcrypt.hash(key, 10);
+
       const [result] = await pool.query('INSERT INTO api_keys (`key`, description) VALUES (?, ?)', [
-        key,
+        keyHash,
         description
       ]);
 
