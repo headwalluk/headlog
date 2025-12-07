@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# PM2 ecosystem file (contains production config)
+ecosystem.config.js
+
 # Logs
 logs/
 *.log

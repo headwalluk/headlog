@@ -88,13 +88,57 @@ curl http://localhost:3000/websites \
 npm install -g pm2
 ```
 
-### 2. Configure environment
+### 2. Create production ecosystem configuration
 
 ```bash
-# Set NODE_ENV=production in .env
+# Copy the sample ecosystem file
+cp ecosystem-sample.config.js ecosystem.config.js
+
+# Edit ecosystem.config.js to customize:
+# - Number of instances (or leave as 'max' for all CPUs)
+# - Memory limits
+# - Log file locations
+# - Any environment variables
 ```
 
-### 3. Start with PM2
+**Note**: `ecosystem.config.js` is gitignored to keep production settings private.
+
+### 3. Configure environment
+
+Create a production `.env` file with your database credentials:
+
+```bash
+NODE_ENV=production
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=headlog
+DB_USER=headlog_user
+DB_PASSWORD=your_secure_password
+
+PORT=3010
+HOST=0.0.0.0
+
+# Housekeeping
+LOG_RETENTION_DAYS=90
+INACTIVE_WEBSITE_DAYS=180
+
+# Rate Limiting
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_MAX=300
+RATE_LIMIT_WINDOW=1 minute
+
+# Logging
+LOG_LEVEL=warn
+```
+
+### 4. Run database migrations
+
+```bash
+# Migrations will auto-run on first startup, or run manually:
+npm run migrate
+```
+
+### 5. Start with PM2
 
 ```bash
 pm2 start ecosystem.config.js
@@ -102,12 +146,48 @@ pm2 save
 pm2 startup  # Follow instructions for auto-start on boot
 ```
 
-### 4. Monitor
+### 6. Monitor
 
 ```bash
 pm2 status
 pm2 logs headlog
 pm2 monit
+```
+
+### 7. Set up reverse proxy (recommended)
+
+**Nginx configuration example:**
+
+```nginx
+upstream headlog {
+    server 127.0.0.1:3010;
+    keepalive 64;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name logs.yourdomain.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    # Rate limiting at nginx level (additional protection)
+    limit_req_zone $binary_remote_addr zone=headlog:10m rate=10r/s;
+
+    location / {
+        limit_req zone=headlog burst=20 nodelay;
+        
+        proxy_pass http://headlog;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 ```
 
 ## CLI Commands
