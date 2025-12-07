@@ -66,9 +66,11 @@ async function authenticate(request, reply) {
     };
 
     // Update last_used_at timestamp (async, don't await - fire and forget)
-    pool.query('UPDATE api_keys SET last_used_at = NOW() WHERE id = ?', [matchedKey.id]).catch(err => {
-      console.error('Failed to update last_used_at:', err.message);
-    });
+    pool
+      .query('UPDATE api_keys SET last_used_at = NOW() WHERE id = ?', [matchedKey.id])
+      .catch(err => {
+        console.error('Failed to update last_used_at:', err.message);
+      });
   } catch (error) {
     console.error('Authentication error:', error);
     return reply.code(500).send({

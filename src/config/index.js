@@ -72,6 +72,17 @@ const config = {
   migrations: {
     autoRunDisabled: parseBoolEnv(process.env.AUTO_RUN_MIGRATIONS_DISABLED, false),
     directory: 'schema'
+  },
+
+  // Rate Limiting
+  rateLimit: {
+    enabled: parseBoolEnv(process.env.RATE_LIMIT_ENABLED, true),
+    max: parseIntEnv(process.env.RATE_LIMIT_MAX, 100),
+    timeWindow: process.env.RATE_LIMIT_WINDOW || '1 minute',
+    cache: parseIntEnv(process.env.RATE_LIMIT_CACHE, 10000),
+    allowList: process.env.RATE_LIMIT_ALLOWLIST
+      ? process.env.RATE_LIMIT_ALLOWLIST.split(',').map(ip => ip.trim())
+      : ['127.0.0.1', '::1']
   }
 };
 

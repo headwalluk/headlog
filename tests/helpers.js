@@ -70,7 +70,7 @@ async function request(options) {
             if (res.headers['content-type']?.includes('application/json')) {
               try {
                 parsedBody = JSON.parse(responseBody);
-              } catch (_e) {
+              } catch {
                 // Keep as string if parse fails
               }
             }
@@ -156,7 +156,7 @@ async function waitForServer(maxAttempts = 10, delay = 500) {
       if (response.status === 200) {
         return true;
       }
-    } catch (_error) {
+    } catch {
       // Server not ready, wait and retry
     }
 

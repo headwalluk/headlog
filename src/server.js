@@ -1,6 +1,7 @@
 const config = require('./config');
 const fastify = require('fastify');
 const compress = require('@fastify/compress');
+const rateLimit = require('@fastify/rate-limit');
 const { initDatabase, closeDatabase } = require('./config/database');
 const { authenticate } = require('./middleware/auth');
 const logRoutes = require('./routes/logs');
@@ -12,19 +13,19 @@ const { runMigrations } = require('./services/migrationService');
 const app = fastify({
   logger: config.isDevelopment
     ? {
-        level: config.logging.level,
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            translateTime: 'HH:MM:ss',
-            ignore: 'pid,hostname',
-            singleLine: true
-          }
+      level: config.logging.level,
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          translateTime: 'HH:MM:ss',
+          ignore: 'pid,hostname',
+          singleLine: true
         }
       }
+    }
     : {
-        level: config.logging.level
-      },
+      level: config.logging.level
+    },
   trustProxy: true,
   bodyLimit: config.server.bodyLimit
 });
@@ -39,6 +40,59 @@ async function start() {
       global: true,
       encodings: ['gzip', 'deflate']
     });
+
+    // Register rate limiting (before auth to save CPU on failed requests)
+    if (config.rateLimit.enabled) {
+      console.log('⌛ Initializing rate limiting...');
+      await app.register(rateLimit, {
+        max: config.rateLimit.max,
+        timeWindow: config.rateLimit.timeWindow,
+        cache: config.rateLimit.cache,
+        allowList: function (request, key) {
+          // Skip rate limiting for health check only
+          if (request.url === '/health') {
+            return true;
+          }
+          // Allow localhost (for CLI and testing)
+          return config.rateLimit.allowList.includes(key);
+        },
+        skipOnError: false,
+        addHeadersOnExceeding: {
+          'x-ratelimit-limit': true,
+          'x-ratelimit-remaining': true,
+          'x-ratelimit-reset': true
+        },
+        addHeaders: {
+          'x-ratelimit-limit': true,
+          'x-ratelimit-remaining': true,
+          'x-ratelimit-reset': true,
+          'retry-after': true
+        },
+        errorResponseBuilder: function (request, context) {
+          app.log.warn(
+            {
+              ip: request.ip,
+              path: request.url,
+              method: request.method,
+              rateLimitHit: true
+            },
+            'Rate limit exceeded'
+          );
+
+          return {
+            statusCode: 429,
+            error: 'Too Many Requests',
+            message: `Rate limit exceeded. Maximum ${context.max} requests per ${context.after}`,
+            retryAfter: context.after
+          };
+        }
+      });
+      app.log.info(
+        `Rate limiting enabled: ${config.rateLimit.max} requests per ${config.rateLimit.timeWindow}`
+      );
+    } else {
+      app.log.warn('Rate limiting disabled');
+    }
 
     // Initialize database connection
     await initDatabase();
