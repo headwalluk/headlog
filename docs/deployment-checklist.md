@@ -61,37 +61,45 @@ Before deploying Headlog to collect live log data, verify the following:
 ### Test API Endpoints
 
 **1. Health Check (no auth required):**
+
 ```bash
 curl https://logs.yourdomain.com/health
 ```
+
 Expected: `{"status":"ok","timestamp":"...","uptime":...}`
 
 **2. Test Authentication:**
+
 ```bash
 # Should fail with 401
 curl https://logs.yourdomain.com/websites
 ```
 
 **3. Test with Valid API Key:**
+
 ```bash
 curl https://logs.yourdomain.com/websites \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
+
 Expected: `[]` (empty array if no logs ingested yet)
 
 **4. Test Rate Limiting:**
+
 ```bash
 # Run 150 requests rapidly (should see 429 after 100)
-for i in {1..150}; do 
+for i in {1..150}; do
   curl -s -w "%{http_code}\n" \
     https://logs.yourdomain.com/logs \
     -H "Authorization: Bearer invalid" \
     -d '[]' | tail -1
 done | sort | uniq -c
 ```
+
 Expected: ~100 × 401 responses, then 429 responses
 
 **5. Test Log Ingestion:**
+
 ```bash
 curl -X POST https://logs.yourdomain.com/logs \
   -H "Authorization: Bearer YOUR_API_KEY" \
@@ -106,23 +114,25 @@ curl -X POST https://logs.yourdomain.com/logs \
     "log_timestamp": "2025-12-07T12:00:00.000000Z"
   }]'
 ```
+
 Expected: `{"status":"ok","received":1,"processed":1}`
 
 **6. Verify Data in Database:**
+
 ```sql
 -- Check websites were created
 SELECT * FROM websites ORDER BY created_at DESC LIMIT 5;
 
 -- Check logs were ingested
-SELECT id, host, timestamp, code, 
+SELECT id, host, timestamp, code,
        JSON_EXTRACT(raw_data, '$.path') as path
-FROM log_records 
-ORDER BY created_at DESC 
+FROM log_records
+ORDER BY created_at DESC
 LIMIT 10;
 
 -- Check API key usage
-SELECT id, description, is_active, last_used_at 
-FROM api_keys 
+SELECT id, description, is_active, last_used_at
+FROM api_keys
 ORDER BY last_used_at DESC;
 ```
 
@@ -131,11 +141,13 @@ ORDER BY last_used_at DESC;
 ### Application Won't Start
 
 **Check PM2 logs:**
+
 ```bash
 pm2 logs headlog --lines 50
 ```
 
 **Common causes:**
+
 - Missing `.env` file
 - Incorrect database credentials
 - Port already in use
@@ -144,12 +156,14 @@ pm2 logs headlog --lines 50
 ### Can't Connect from Fluent Bit
 
 **Test from web server:**
+
 ```bash
 # From your web server, test connectivity
 curl https://logs.yourdomain.com/health
 ```
 
 **Common causes:**
+
 - Firewall blocking connections
 - SSL certificate issues
 - Incorrect URL in Fluent Bit config
@@ -158,13 +172,16 @@ curl https://logs.yourdomain.com/health
 ### Rate Limiting Too Aggressive
 
 **Symptoms:**
+
 - Legitimate requests getting 429 responses
 - Fluent Bit logs showing rate limit errors
 
 **Solutions:**
+
 1. Check current traffic patterns:
+
 ```sql
-SELECT 
+SELECT
   JSON_UNQUOTE(JSON_EXTRACT(raw_data, '$.remote')) as ip,
   COUNT(*) as request_count,
   COUNT(*) / 60.0 as req_per_second
@@ -175,12 +192,14 @@ ORDER BY request_count DESC;
 ```
 
 2. Increase rate limits in `.env`:
+
 ```bash
 RATE_LIMIT_MAX=500
 RATE_LIMIT_WINDOW=1 minute
 ```
 
 3. Restart PM2:
+
 ```bash
 pm2 restart headlog
 ```
@@ -188,8 +207,9 @@ pm2 restart headlog
 ### Database Growing Too Fast
 
 **Check database size:**
+
 ```sql
-SELECT 
+SELECT
   table_name,
   ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)",
   table_rows
@@ -199,18 +219,22 @@ ORDER BY (data_length + index_length) DESC;
 ```
 
 **Solutions:**
+
 1. Reduce retention period in `.env`:
+
 ```bash
 LOG_RETENTION_DAYS=30
 ```
 
 2. Manually trigger cleanup:
+
 ```bash
 # PM2 will run housekeeping automatically, but you can force it:
 pm2 restart headlog
 ```
 
 3. Consider archiving old data:
+
 ```sql
 -- Export logs older than 90 days
 SELECT * INTO OUTFILE '/tmp/logs-archive-2025-12.csv'
@@ -240,6 +264,7 @@ pm2 monit
 ### Database Monitoring
 
 **Daily checks:**
+
 ```sql
 -- Records ingested today
 SELECT COUNT(*) as todays_records
@@ -262,6 +287,7 @@ ORDER BY last_used_at DESC;
 ### Application Health
 
 **Set up a cron job to monitor health:**
+
 ```bash
 # Add to crontab (crontab -e)
 */5 * * * * curl -s https://logs.yourdomain.com/health || echo "Headlog health check failed" | mail -s "Alert: Headlog Down" admin@yourdomain.com

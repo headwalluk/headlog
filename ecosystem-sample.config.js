@@ -6,7 +6,7 @@ module.exports = {
       instances: 'max', // Use all CPU cores (or specify a number like 4)
       exec_mode: 'cluster',
       env: {
-        NODE_ENV: 'production',
+        NODE_ENV: 'production'
         // PORT: 3010,
         // HOST: '0.0.0.0',
         // LOG_LEVEL: 'info'

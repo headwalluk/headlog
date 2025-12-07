@@ -1,9 +1,11 @@
 # Headlog
 
-**Centralised Apache Log Aggregation System**
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/headwalluk/headlog/releases)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Tests](https://img.shields.io/badge/tests-19%20passing-success.svg)](tests/)
 
-> ⚠️ **WARNING: This project is in heavy development and is NOT production-ready.**  
-> Breaking changes may occur without notice. Use at your own risk.
+**Centralised Apache Log Aggregation System**
 
 A lightweight, high-performance Node.js service for collecting and storing Apache access and error logs from multiple web servers into a central MariaDB database. Built for simplicity, speed, and self-hosted infrastructure.
 

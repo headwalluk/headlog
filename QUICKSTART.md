@@ -176,7 +176,7 @@ server {
 
     location / {
         limit_req zone=headlog burst=20 nodelay;
-        
+
         proxy_pass http://headlog;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;

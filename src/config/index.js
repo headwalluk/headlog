@@ -83,6 +83,11 @@ const config = {
     allowList: process.env.RATE_LIMIT_ALLOWLIST
       ? process.env.RATE_LIMIT_ALLOWLIST.split(',').map(ip => ip.trim())
       : ['127.0.0.1', '::1']
+  },
+
+  // Security
+  security: {
+    skipDotenvPermissionCheck: parseBoolEnv(process.env.SKIP_DOTENV_PERMISSION_CHECK, false)
   }
 };
 
