@@ -61,8 +61,8 @@ async function ingestLogs(logRecords) {
       const websiteId = await findOrCreateWebsite(domain);
       websiteIds.add(websiteId);
 
-      // Extract timestamp from record or use current time
-      const timestamp = record.timestamp || new Date();
+      // Extract timestamp from log_timestamp field (actual event time) or use current time
+      const timestamp = record.log_timestamp || new Date();
 
       // Find or create HTTP code (use 0 for N/A if no code present)
       const codeId = record.code ? await findOrCreateHttpCode(record.code) : 0;
