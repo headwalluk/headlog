@@ -25,53 +25,58 @@ As infrastructure spans multiple datacenters or geographic regions, pushing all 
 ### Two-Tier Example
 
 ```
-┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
-│  Web Server 1   │      │  Web Server 2   │      │  Web Server N   │
-│  (Fluent Bit)   │      │  (Fluent Bit)   │      │  (Fluent Bit)   │
-│  DC1            │      │  DC1            │      │  DC1            │
-└────────┬────────┘      └────────┬────────┘      └────────┬────────┘
-         │                        │                        │
-         └────────────────────────┼────────────────────────┘
-                                  │
-                                  ▼
-                       ┌──────────────────────┐
-                       │   Regional Headlog   │
-                       │   DC1 (log-dc1)      │
-                       │   Accepts: Web logs  │
-                       │   Forwards: Upstream │
-                       └──────────┬───────────┘
-                                  │
-                                  │ Batched + Compressed
-                                  │
-         ┌────────────────────────┴────────────────────────┐
-         │                                                  │
-         ▼                                                  ▼
-┌──────────────────────┐                         ┌──────────────────────┐
-│   Regional Headlog   │                         │   Regional Headlog   │
-│   DC2 (log-dc2)      │                         │   DC3 (log-dc3)      │
-│   Accepts: Web logs  │                         │   Accepts: Web logs  │
-│   Forwards: Upstream │                         │   Forwards: Upstream │
-└──────────┬───────────┘                         └──────────┬───────────┘
-           │                                                │
-           └────────────────────────┬───────────────────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │   Central Headlog    │
-                         │   (log-central)      │
-                         │   Accepts: Web logs  │
-                         │   Accepts: Regional  │
-                         │   Forwards: None     │
-                         └──────────────────────┘
+Data Center 1                    Data Center 2                    Data Center 3
+═════════════                    ═════════════                    ═════════════
+
+┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐
+│ Web Server 1 │                 │ Web Server 1 │                 │ Web Server 1 │
+│ (Fluent Bit) │                 │ (Fluent Bit) │                 │ (Fluent Bit) │
+└──────┬───────┘                 └──────┬───────┘                 └──────┬───────┘
+       │                                │                                │
+┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐
+│ Web Server 2 │                 │ Web Server 2 │                 │ Web Server 2 │
+│ (Fluent Bit) │                 │ (Fluent Bit) │                 │ (Fluent Bit) │
+└──────┬───────┘                 └──────┬───────┘                 └──────┬───────┘
+       │                                │                                │
+┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐
+│ Web Server N │                 │ Web Server N │                 │ Web Server N │
+│ (Fluent Bit) │                 │ (Fluent Bit) │                 │ (Fluent Bit) │
+└──────┬───────┘                 └──────┬───────┘                 └──────┬───────┘
+       │                                │                                │
+       └────────┬───────────────────────┘                                │
+                │                       └────────┬───────────────────────┘
+                ▼                                ▼
+     ┌─────────────────────┐         ┌─────────────────────┐         ┌─────────────────────┐
+     │  Regional Headlog   │         │  Regional Headlog   │         │  Regional Headlog   │
+     │  DC1 (log-dc1)      │         │  DC2 (log-dc2)      │         │  DC3 (log-dc3)      │
+     │                     │         │                     │         │                     │
+     │  Upstream: Central  │         │  Upstream: Central  │         │  Upstream: Central  │
+     └──────────┬──────────┘         └──────────┬──────────┘         └──────────┬──────────┘
+                │                               │                               │
+                │  Batched + Compressed         │  Batched + Compressed         │  Batched + Compressed
+                │                               │                               │
+                └───────────────────────────────┼───────────────────────────────┘
+                                                │
+                                                ▼
+                                     ┌──────────────────────┐
+                                     │  Central Headlog     │
+                                     │  (log-central)       │
+                                     │                      │
+                                     │  Upstream: None      │
+                                     └──────────────────────┘
+
+                                          Home Base
+                                          ═════════
 ```
 
 ### Key Principles
 
 1. **Any headlog can accept web server logs** - Regional instances work exactly like standalone instances
 2. **Any headlog can accept logs from downstream headlog instances** - Use the same `POST /logs` endpoint
-3. **Upstream forwarding is optional** - Configure `UPSTREAM_SERVER` only when needed
-4. **Logs flow upward only** - No circular references or bidirectional sync
-5. **Regional instances buffer during outages** - Logs accumulate locally until upstream is reachable
+3. **Each headlog has exactly zero or one upstream server** - Simple, linear hierarchy with no fanout/distribution
+4. **Logs flow upward only** - No circular references, no bidirectional sync, no peer-to-peer distribution
+5. **Regional instances buffer during outages** - Logs accumulate locally until upstream is reachable (automatic fault tolerance)
+6. **No redundancy needed** - Buffering handles failures; complexity of multi-upstream not required
 
 ## Database Schema Changes
 
@@ -582,11 +587,12 @@ Extend `GET /health` to include upstream sync status:
 
 2. **Regional retention:**
    - Automatic purge of archived records
-   - Configurable retention policies
+   - Configurable retention policies per instance
 
-3. **Multi-upstream:**
-   - Support multiple upstream servers (redundancy)
-   - Load balancing between upstream instances
+3. **Schema version validation:**
+   - Include version in batch metadata
+   - Central validates compatibility before processing
+   - Clear error messages for version mismatches
 
 ## Security Considerations
 
@@ -617,23 +623,66 @@ This allows differentiation between:
 - Limit batch sizes to prevent memory exhaustion
 - Rate limit upstream sync requests (separate from web server rate limits)
 
-## Open Questions
+## Design Decisions
 
-1. **Should archived records be purged automatically or require manual cleanup?**
-   - Recommendation: Automatic with configurable retention period
+### Archived Records Purging
 
-2. **What happens if regional instance database fails and loses un-archived records?**
-   - They're lost (same as current behavior)
-   - Could add optional write-ahead log for durability
+**Decision:** Automatic purging with configurable retention period
 
-3. **Should we support multi-upstream (sending to multiple central instances)?**
-   - Defer to v1.7.0+
-   - Adds complexity, most users won't need it
+Regional instances should automatically purge archived records after `UPSTREAM_RETENTION_DAYS` to prevent unbounded disk growth. The central instance keeps all records according to its own housekeeping policy.
 
-4. **How do we handle schema version mismatches between regional and central?**
-   - Include schema version in batch metadata
-   - Central rejects batches with incompatible versions
-   - Documented upgrade procedure: upgrade central first, then regionals
+### Regional Database Failure
+
+**Impact:** Un-archived records are lost (same as current standalone behavior)
+
+This is acceptable because:
+- Same risk exists today in standalone deployments
+- Adding write-ahead log adds significant complexity
+- Most production setups have database backups/replication
+- Could be addressed in future version if needed
+
+### Single Upstream Only
+
+**Decision:** Each headlog instance has exactly zero or one upstream server
+
+Multi-upstream adds significant complexity without clear benefit:
+- Buffering provides automatic fault tolerance during outages
+- Redundancy better handled at infrastructure level (load balancers, failover DNS)
+- Duplicate detection becomes much more complex
+- Most users don't need this complexity
+
+**Not supported:**
+```
+     Regional DC1
+    /            \
+   ↓              ↓
+Central A    Central B  ← Redundant upstreams
+```
+
+**Correct architecture:**
+```
+Regional DC1 → Central A → [manual failover if needed]
+```
+
+### Schema Version Compatibility
+
+**Decision:** Include schema version in batch metadata; central validates compatibility
+
+Upgrade procedure:
+1. Upgrade central headlog first
+2. Test with one regional instance
+3. Roll out to remaining regional instances
+4. Central rejects batches from incompatible versions with clear error message
+
+Batch payload includes:
+```json
+{
+  "batch_uuid": "...",
+  "source_instance": "log-dc1.headwall.net",
+  "schema_version": "1.5.0",
+  "records": [...]
+}
+```
 
 ## Related Documents
 
