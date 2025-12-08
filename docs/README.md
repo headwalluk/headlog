@@ -10,18 +10,17 @@ Complete documentation for installing, configuring, and operating Headlog.
 ## Features
 
 - **[Hierarchical Aggregation](hierarchical-aggregation.md)** - Multi-datacenter log forwarding setup
-- **[API Usage](api-usage.md)** - REST API endpoints and usage examples
-- **[CLI Reference](cli-reference.md)** - Command-line interface documentation
 
-## Operations
+## Additional Documentation
 
-- **[Monitoring & Maintenance](operations.md)** - PM2 monitoring, log rotation, and troubleshooting
-- **[Database Management](database.md)** - Schema migrations, backups, and optimization
+Additional guides are planned for future releases:
 
-## Architecture
-
-- **[System Architecture](architecture.md)** - Design decisions and data flow
-- **[Performance Tuning](performance.md)** - Optimization for high-volume deployments
+- **API Usage** - REST API endpoints and usage examples
+- **CLI Reference** - Command-line interface documentation
+- **Monitoring & Maintenance** - PM2 monitoring, log rotation, and troubleshooting
+- **Database Management** - Schema migrations, backups, and optimization
+- **System Architecture** - Design decisions and data flow
+- **Performance Tuning** - Optimization for high-volume deployments
 
 ## Contributing
 

@@ -124,9 +124,11 @@ Complete documentation available in the [`docs/`](docs/) directory:
 - **[Quick Start Guide](docs/quickstart.md)** - Get running in 5 minutes
 - **[Installation Guide](docs/installation.md)** - Detailed setup for production
 - **[Hierarchical Aggregation](docs/hierarchical-aggregation.md)** - Multi-datacenter forwarding
-- **[API Reference](docs/api-usage.md)** - REST API endpoints and usage
-- **[CLI Reference](docs/cli-reference.md)** - Command-line interface
-- **[Operations Guide](docs/operations.md)** - Monitoring and maintenance
+
+**Additional documentation (coming soon):**
+- API Reference - REST API endpoints and usage examples
+- CLI Reference - Command-line interface documentation
+- Operations Guide - Monitoring, maintenance, and troubleshooting
 
 **Development notes:** See [`dev-notes/`](dev-notes/) for design decisions and implementation details.
 
@@ -165,7 +167,7 @@ node cli.js schema:history
 - `GET /logs` - Query logs (Phase 2)
 - `GET /websites` - List discovered websites
 
-Full API documentation: [docs/api-usage.md](docs/api-usage.md)
+See [dev-notes/api-usage.md](dev-notes/api-usage.md) for technical API details.
 
 ## Performance
 
