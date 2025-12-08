@@ -273,5 +273,5 @@ This is a personal/internal project. If you have suggestions or find issues, fee
 ## Author
 
 **Paul Faulkner**  
-Headwall Tech  
-https://github.com/headwalluk/headlog
+Headwall Hosting
+https://headwall-hosting.com
