@@ -87,22 +87,24 @@ UPSTREAM_BATCH_INTERVAL=60
 UPSTREAM_BATCH_SIZE_MIN=0.2
 UPSTREAM_BATCH_SIZE_RECOVERY=0.1
 UPSTREAM_COMPRESSION=true
+UPSTREAM_TIMEOUT=60
 INSTANCE_NAME=regional-datacenter-1
 ```
 
 ### Configuration Parameters
 
-| Parameter                      | Description                  | Default  | Recommended                   |
-| ------------------------------ | ---------------------------- | -------- | ----------------------------- |
-| `UPSTREAM_ENABLED`             | Enable upstream forwarding   | `false`  | `true` for regional           |
-| `UPSTREAM_SERVER`              | Central server URL           | -        | `https://central.example.com` |
-| `UPSTREAM_API_KEY`             | API key from central         | -        | Generate on central           |
-| `UPSTREAM_BATCH_SIZE`          | Target batch size            | `1000`   | 500-2000                      |
-| `UPSTREAM_BATCH_INTERVAL`      | Seconds between uploads      | `60`     | 30-300                        |
-| `UPSTREAM_BATCH_SIZE_MIN`      | Minimum multiplier (floor)   | `0.2`    | 0.1-0.5                       |
-| `UPSTREAM_BATCH_SIZE_RECOVERY` | Recovery increment           | `0.1`    | 0.05-0.2                      |
-| `UPSTREAM_COMPRESSION`         | Enable gzip compression      | `true`   | `true`                        |
-| `INSTANCE_NAME`                | Identifier for this instance | hostname | `regional-dc-1`               |
+| Parameter                      | Description                    | Default  | Recommended                   |
+| ------------------------------ | ------------------------------ | -------- | ----------------------------- |
+| `UPSTREAM_ENABLED`             | Enable upstream forwarding     | `false`  | `true` for regional           |
+| `UPSTREAM_SERVER`              | Central server URL             | -        | `https://central.example.com` |
+| `UPSTREAM_API_KEY`             | API key from central           | -        | Generate on central           |
+| `UPSTREAM_BATCH_SIZE`          | Target batch size              | `1000`   | 500-2000                      |
+| `UPSTREAM_BATCH_INTERVAL`      | Seconds between uploads        | `60`     | 30-300                        |
+| `UPSTREAM_BATCH_SIZE_MIN`      | Minimum multiplier (floor)     | `0.2`    | 0.1-0.5                       |
+| `UPSTREAM_BATCH_SIZE_RECOVERY` | Recovery increment             | `0.1`    | 0.05-0.2                      |
+| `UPSTREAM_COMPRESSION`         | Enable gzip compression        | `true`   | `true`                        |
+| `UPSTREAM_TIMEOUT`             | HTTP request timeout (seconds) | `60`     | 30-120                        |
+| `INSTANCE_NAME`                | Identifier for this instance   | hostname | `regional-dc-1`               |
 
 ### Step 4: Restart Regional Servers
 

@@ -100,6 +100,7 @@ const config = {
     batchSizeMin: parseFloat(process.env.UPSTREAM_BATCH_SIZE_MIN) || 0.2,
     batchSizeRecovery: parseFloat(process.env.UPSTREAM_BATCH_SIZE_RECOVERY) || 0.1,
     compression: parseBoolEnv(process.env.UPSTREAM_COMPRESSION, true),
+    timeout: parseIntEnv(process.env.UPSTREAM_TIMEOUT, 60),
     instanceName: process.env.INSTANCE_NAME || require('os').hostname()
   }
 };

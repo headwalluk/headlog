@@ -120,7 +120,8 @@ async function postToUpstream(payload, config) {
 
   // Create abort controller for timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+  const timeoutMs = config.upstream.timeout * 1000; // Convert seconds to milliseconds
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${config.upstream.server}/logs`, {
