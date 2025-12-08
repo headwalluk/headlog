@@ -79,12 +79,11 @@ program
       } else {
         console.log(`\n Found ${rows.length} API key(s):\n`);
         console.log(
-          '  ID  | Key (last 8)  | Status   | Description                | Last Used           | Created'
+          '  ID  | Status   | Description                | Last Used           | Created'
         );
-        console.log('  ' + '-'.repeat(110));
+        console.log('  ' + '-'.repeat(95));
 
         rows.forEach(row => {
-          const keyPreview = '...' + row.key.slice(-8);
           const status = row.is_active ? 'Active  ' : 'Inactive';
           const description = (row.description || '').substring(0, 25).padEnd(25);
           const lastUsed = row.last_used_at
@@ -93,7 +92,7 @@ program
           const created = new Date(row.created_at).toISOString().substring(0, 10);
 
           console.log(
-            `  ${String(row.id).padEnd(3)} | ${keyPreview.padEnd(13)} | ${status} | ${description} | ${lastUsed} | ${created}`
+            `  ${String(row.id).padEnd(3)} | ${status} | ${description} | ${lastUsed} | ${created}`
           );
         });
         console.log('');
