@@ -259,6 +259,83 @@ See [`docs/storage-optimization.md`](docs/storage-optimization.md) for technical
 
 ---
 
+## Project Tracker: Hierarchical Aggregation (v1.5.0)
+
+Multi-datacenter log forwarding with hierarchical topology. See [`docs/hierarchical-aggregation.md`](docs/hierarchical-aggregation.md) for complete design.
+
+### Phase 1: Core Implementation (v1.5.0)
+
+**Database Schema:**
+- [ ] Add `archived_at` TIMESTAMP column to `log_records`
+- [ ] Create `upstream_sync_batches` table (batch UUID, status, timestamps)
+- [ ] Add `upstream_batch_uuid` column to `log_records`
+- [ ] Create `batch_deduplication` table for upstream instances
+- [ ] Write migration script (1.5.0-hierarchical-aggregation.sql)
+
+**Configuration:**
+- [ ] Add upstream config to `src/config/index.js`
+  - `UPSTREAM_ENABLED`, `UPSTREAM_SERVER`, `UPSTREAM_API_KEY`
+  - `UPSTREAM_BATCH_SIZE`, `UPSTREAM_BATCH_INTERVAL`
+  - `UPSTREAM_BATCH_SIZE_MIN`, `UPSTREAM_BATCH_SIZE_RECOVERY`
+  - `UPSTREAM_COMPRESSION`
+
+**Core Sync Service:**
+- [ ] Create `src/services/upstreamSyncService.js`
+  - `getUnArchivedRecords()` - Query pending logs
+  - `getAdaptiveBatchSize()` - Dynamic batch sizing
+  - `reduceBatchSize()` / `increaseBatchSize()` - Adaptive algorithm
+  - `postToUpstream()` - HTTP POST with compression
+  - `markRecordsArchived()` - Update archived_at timestamps
+  - `performUpstreamSync()` - Main sync orchestration with batch tracking
+  - UUID collision check with retry logic
+
+**Cron Task:**
+- [ ] Create `src/tasks/upstreamSync.js`
+  - `isNextBatchUploadDue()` - Interval throttling
+  - `performUpstreamSyncIfDue()` - Cron entry point
+- [ ] Register cron task in `src/housekeeping/tasks.js` (worker 0 only)
+
+**Upstream Deduplication:**
+- [ ] Add batch deduplication logic to `POST /logs` handler
+  - Check `batch_deduplication` table
+  - Insert new batch records
+  - Return success for duplicate batches
+
+**Housekeeping:**
+- [ ] Modify purge logic to respect `archived_at` when upstream enabled
+  - Only purge: `archived_at IS NOT NULL AND older than LOG_RETENTION_DAYS`
+  - Un-archived records buffered indefinitely during outages
+
+**Testing:**
+- [ ] Unit tests for adaptive batch sizing
+- [ ] Unit tests for UUID collision handling
+- [ ] Integration test: two headlog instances (regional → central)
+- [ ] Test network failure scenarios and retry logic
+- [ ] Test duplicate batch rejection on upstream
+
+**Documentation:**
+- [ ] Update `QUICKSTART.md` with hierarchy setup instructions
+- [ ] Update `docs/deployment-checklist.md` with upstream configuration
+- [ ] Add example configurations (regional, central, standalone)
+
+### Phase 2: Enhanced Features (v1.6.0)
+
+- [ ] CLI command to retry specific failed batches
+- [ ] Automatic retry of failed batches after cooldown period
+- [ ] Dashboard/endpoint for viewing batch sync status
+- [ ] Automatic cleanup of old completed batches
+- [ ] Automatic cleanup of old deduplication records
+- [ ] Configurable retention periods for batch metadata
+
+### Phase 3: Advanced Features (v1.7.0)
+
+- [ ] Extend `/health` endpoint with upstream sync status
+- [ ] Prometheus metrics export for monitoring
+- [ ] Schema version validation in batch metadata
+- [ ] Per-API-key `can_forward_logs` authorization flag
+
+---
+
 ## Documentation
 
 - [`docs/requirements.md`](docs/requirements.md) - Complete requirements specification
