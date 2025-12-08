@@ -22,61 +22,46 @@ As infrastructure spans multiple datacenters or geographic regions, pushing all 
 
 ## Architecture
 
-### Two-Tier Example
+Headlog supports hierarchical log aggregation where logs flow upward through a tree-like topology:
 
+**Bottom Tier:** Web servers run Fluent Bit agents that push logs to a headlog instance (via `POST /logs`)
+
+**Middle Tier(s):** Regional/datacenter headlog instances that:
+- Accept logs from web servers (Fluent Bit)
+- Accept logs from downstream headlog instances
+- Buffer all logs locally in their database
+- Periodically forward all logs upstream to their parent headlog instance
+
+**Top Tier:** Central/home-base headlog instance that:
+- Accepts logs from regional headlog instances
+- Accepts logs from web servers (if any are co-located)
+- Has no upstream configuration (end of the hierarchy)
+- Retains all logs according to its housekeeping policy
+
+### Hierarchy Examples
+
+**Two-Tier (typical):**
 ```
-Data Center 1                    Data Center 2                    Data Center 3
-═════════════                    ═════════════                    ═════════════
+Web Servers → Regional Headlog (DC1) → Central Headlog (Home Base)
+Web Servers → Regional Headlog (DC2) ↗
+Web Servers → Regional Headlog (DC3) ↗
+```
 
-┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐
-│ Web Server 1 │                 │ Web Server 1 │                 │ Web Server 1 │
-│ (Fluent Bit) │                 │ (Fluent Bit) │                 │ (Fluent Bit) │
-└──────┬───────┘                 └──────┬───────┘                 └──────┬───────┘
-       │                                │                                │
-┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐
-│ Web Server 2 │                 │ Web Server 2 │                 │ Web Server 2 │
-│ (Fluent Bit) │                 │ (Fluent Bit) │                 │ (Fluent Bit) │
-└──────┬───────┘                 └──────┬───────┘                 └──────┬───────┘
-       │                                │                                │
-┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐
-│ Web Server N │                 │ Web Server N │                 │ Web Server N │
-│ (Fluent Bit) │                 │ (Fluent Bit) │                 │ (Fluent Bit) │
-└──────┬───────┘                 └──────┬───────┘                 └──────┬───────┘
-       │                                │                                │
-       └────────┬───────────────────────┘                                │
-                │                       └────────┬───────────────────────┘
-                ▼                                ▼
-     ┌─────────────────────┐         ┌─────────────────────┐         ┌─────────────────────┐
-     │  Regional Headlog   │         │  Regional Headlog   │         │  Regional Headlog   │
-     │  DC1 (log-dc1)      │         │  DC2 (log-dc2)      │         │  DC3 (log-dc3)      │
-     │                     │         │                     │         │                     │
-     │  Upstream: Central  │         │  Upstream: Central  │         │  Upstream: Central  │
-     └──────────┬──────────┘         └──────────┬──────────┘         └──────────┬──────────┘
-                │                               │                               │
-                │  Batched + Compressed         │  Batched + Compressed         │  Batched + Compressed
-                │                               │                               │
-                └───────────────────────────────┼───────────────────────────────┘
-                                                │
-                                                ▼
-                                     ┌──────────────────────┐
-                                     │  Central Headlog     │
-                                     │  (log-central)       │
-                                     │                      │
-                                     │  Upstream: None      │
-                                     └──────────────────────┘
-
-                                          Home Base
-                                          ═════════
+**Three-Tier (complex deployments):**
+```
+Web Servers → Office Headlog → Regional Headlog (DC1) → Central Headlog
+Web Servers → Office Headlog ↗
 ```
 
 ### Key Principles
 
-1. **Any headlog can accept web server logs** - Regional instances work exactly like standalone instances
-2. **Any headlog can accept logs from downstream headlog instances** - Use the same `POST /logs` endpoint
-3. **Each headlog has exactly zero or one upstream server** - Simple, linear hierarchy with no fanout/distribution
+1. **Each headlog accepts logs from web servers** - All instances work like standalone deployments
+2. **Each headlog can accept logs from downstream headlog instances** - Use the same `POST /logs` endpoint
+3. **Each headlog has exactly zero or one upstream** - Simple, linear hierarchy with no fanout/distribution
 4. **Logs flow upward only** - No circular references, no bidirectional sync, no peer-to-peer distribution
-5. **Regional instances buffer during outages** - Logs accumulate locally until upstream is reachable (automatic fault tolerance)
+5. **Instances buffer during outages** - Logs accumulate locally until upstream is reachable (automatic fault tolerance)
 6. **No redundancy needed** - Buffering handles failures; complexity of multi-upstream not required
+7. **Top-tier instance has complete data** - Eventually receives all logs from all web servers across the entire hierarchy
 
 ## Database Schema Changes
 
