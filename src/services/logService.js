@@ -1,6 +1,8 @@
 const { getPool } = require('../config/database');
 const { extractDomain, extractLogType } = require('../utils/extractDomain');
 const { findOrCreateWebsite, updateWebsiteActivity } = require('./websiteService');
+const { findOrCreateHttpCode } = require('./httpCodeService');
+const { getOrCreateHostIds } = require('./hostService');
 
 /**
  * Process and store log records from Fluent Bit
@@ -15,8 +17,10 @@ async function ingestLogs(logRecords) {
   const pool = getPool();
   const processedRecords = [];
   const websiteIds = new Set();
+  const hostnames = [];
 
-  // Process each record
+  // First pass: validate and collect unique hostnames
+  const validRecords = [];
   for (const record of logRecords) {
     try {
       // Validate required fields
@@ -34,6 +38,25 @@ async function ingestLogs(logRecords) {
         continue;
       }
 
+      validRecords.push({ record, domain, logType });
+      hostnames.push(record.host);
+    } catch (error) {
+      console.error('Error validating log record:', error.message, record);
+      // Continue processing other records
+    }
+  }
+
+  if (validRecords.length === 0) {
+    return 0;
+  }
+
+  // Batch fetch/create all host IDs (race-safe for PM2 cluster)
+  const uniqueHostnames = [...new Set(hostnames)];
+  const hostMap = await getOrCreateHostIds(uniqueHostnames);
+
+  // Second pass: process validated records with host IDs
+  for (const { record, domain, logType } of validRecords) {
+    try {
       // Find or create website
       const websiteId = await findOrCreateWebsite(domain);
       websiteIds.add(websiteId);
@@ -41,13 +64,19 @@ async function ingestLogs(logRecords) {
       // Extract timestamp from record or use current time
       const timestamp = record.timestamp || new Date();
 
+      // Find or create HTTP code (use 0 for N/A if no code present)
+      const codeId = record.code ? await findOrCreateHttpCode(record.code) : 0;
+
+      // Get host ID from batch-fetched map
+      const hostId = hostMap.get(record.host);
+
       // Prepare record for insertion
       processedRecords.push([
         websiteId,
         logType,
         timestamp,
-        record.host,
-        record.code || null,
+        hostId,
+        codeId,
         record.remote || null,
         JSON.stringify(record)
       ]);
@@ -65,7 +94,7 @@ async function ingestLogs(logRecords) {
   try {
     await pool.query(
       `INSERT INTO log_records 
-       (website_id, log_type, timestamp, host, code, remote, raw_data) 
+       (website_id, log_type, timestamp, host_id, code_id, remote, raw_data) 
        VALUES ?`,
       [processedRecords]
     );

@@ -10,6 +10,8 @@ const logRoutes = require('./routes/logs');
 const websiteRoutes = require('./routes/websites');
 const { initHousekeeping } = require('./housekeeping/tasks');
 const { runMigrations } = require('./services/migrationService');
+const { initializeCodeCache } = require('./services/httpCodeService');
+const { prewarmCache: prewarmHostCache } = require('./services/hostService');
 
 // Initialize Fastify
 const app = fastify({
@@ -174,6 +176,16 @@ async function start() {
     } else if (config.migrations.autoRunDisabled) {
       app.log.warn('Auto-run migrations disabled (AUTO_RUN_MIGRATIONS_DISABLED=true)');
     }
+
+    // Initialize HTTP code cache
+    app.log.info('Loading HTTP status codes into cache...');
+    await initializeCodeCache();
+    app.log.info('HTTP status codes loaded successfully');
+
+    // Pre-warm host cache with most common hosts
+    app.log.info('Pre-warming host cache...');
+    await prewarmHostCache(1000); // Load top 1000 hosts by last_seen_at
+    app.log.info('Host cache pre-warmed successfully');
 
     // Health check endpoint (no auth required)
     app.get('/health', async (request, reply) => {

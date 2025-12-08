@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-12-08
+
+### Added
+
+- **Storage Optimization: TIMESTAMP Conversion** (Migration 1.3.0)
+  - Convert `timestamp` column from DATETIME (8 bytes) to TIMESTAMP (4 bytes)
+  - Storage savings: 4 bytes per record (40MB per 10M records)
+  - UTC-based with automatic timezone conversion
+  - Complete storage optimization initiative finished
+
+### Changed
+
+- Storage efficiency improvements now complete across all three optimizations
+- Total savings: ~56-264 bytes per record (560MB-2.64GB per 10M records)
+
+## [1.2.1] - 2025-12-08
+
+### Removed
+
+- **Drop Legacy Host Column** (Migration 1.2.1)
+  - Removed old `host` VARCHAR(255) column from `log_records`
+  - Completes host deduplication optimization
+  - Storage savings: ~50-255 bytes per record
+
+## [1.2.0] - 2025-12-08
+
+### Added
+
+- **Storage Optimization: Host Deduplication** (Migration 1.2.0)
+  - New `hosts` lookup table with SMALLINT UNSIGNED IDs
+  - `hostService.js` with race-safe `getOrCreateHostIds()` using INSERT IGNORE
+  - In-memory cache with 1-hour TTL and pre-warming (top 1000 hosts)
+  - PM2 cluster safe - no coordination needed between workers
+  - Batch operations: 2 queries max per ingestion batch
+  - Added `host_id` foreign key column to `log_records`
+  - Storage savings: ~50-250 bytes per record (500MB-2.5GB per 10M records)
+
+### Changed
+
+- `logService.js` updated to use batch host lookups
+  - Two-pass processing for optimal performance
+  - Extract unique hostnames, batch fetch/create, then process records
+
+## [1.1.1] - 2025-12-08
+
+### Removed
+
+- **Drop Legacy Code Column** (Migration 1.1.1)
+  - Removed old `code` VARCHAR(10) column from `log_records`
+  - Completes HTTP codes optimization
+  - Storage savings: ~3-11 bytes per record
+
+## [1.1.0] - 2025-12-08
+
+### Added
+
+- **Storage Optimization: HTTP Code Deduplication** (Migration 1.1.0)
+  - New `http_codes` lookup table with SMALLINT UNSIGNED IDs
+  - Pre-populated with complete IANA HTTP Status Code Registry (62 codes)
+  - Special code `id=0` for "N/A" (error logs without HTTP status)
+  - `httpCodeService.js` with in-memory cache for all codes
+  - Added `code_id` foreign key column to `log_records`
+  - Storage savings: ~2-10 bytes per record (20-100MB per 10M records)
+- **Storage Optimization Documentation**: `docs/storage-optimization.md`
+  - Comprehensive analysis of all three optimization opportunities
+  - Implementation strategies and code examples
+  - Performance considerations and migration plans
+- **Hierarchical Aggregation Design**: `docs/hierarchical-aggregation.md`
+  - Complete design for multi-datacenter log forwarding
+  - UUID collision detection for batch uniqueness
+  - Adaptive batch sizing algorithm
+  - Robust idempotency solution with deduplication
+
+### Changed
+
+- `logService.js` updated to use HTTP code lookups
+- Server startup pre-loads HTTP code cache
+- Updated to SMALLINT UNSIGNED for HTTP codes (was TINYINT - insufficient for codes >255)
+
+### Fixed
+
+- HTTP codes table now includes all IANA-registered codes (was missing 24 codes)
+- Corrected descriptions to match IANA standards ("Content Too Large", "Unprocessable Content")
+
 ## [1.0.1] - 2025-12-07
 
 ### Added

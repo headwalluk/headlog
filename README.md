@@ -1,6 +1,6 @@
 # Headlog
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/headwalluk/headlog/releases)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/headwalluk/headlog/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Tests](https://img.shields.io/badge/tests-19%20passing-success.svg)](tests/)
@@ -234,11 +234,20 @@ Automated maintenance tasks (run on PM2 worker 0 only):
 
 ## Project Status
 
-**Current Phase:** Phase #1 - Core Ingestion & Storage
+**Current Phase:** Phase #1 - Core Ingestion & Storage (Complete)
 
 ✅ Requirements specification complete  
 ✅ Initial implementation complete (v1.0.1)  
-✅ Production deployment active
+✅ Production deployment active  
+✅ Storage optimizations complete (v1.3.0)
+
+**Storage Optimizations:**
+- Host deduplication using lookup table (~50-250 bytes/record saved)
+- HTTP code deduplication with IANA registry (~2-10 bytes/record saved)
+- DATETIME → TIMESTAMP conversion (4 bytes/record saved)
+- **Total: ~56-264 bytes per record (560MB-2.64GB per 10M records)**
+
+See [`docs/storage-optimization.md`](docs/storage-optimization.md) for technical details.
 
 **Phase #2 (Future):**
 
@@ -246,61 +255,7 @@ Automated maintenance tasks (run on PM2 worker 0 only):
 - Failed login tracking
 - Bot detection and automated actions
 - IP blacklisting integration
-- Rate limiting
-
----
-
-## Optimizations
-
-Storage optimization tasks to reduce database size and improve performance:
-
-### 1. Deduplicate Host Column (v1.1.0)
-
-**Goal:** Create `hosts` lookup table to eliminate duplicate hostname strings  
-**Impact:** ~50-250 bytes saved per record (500MB-2.5GB per 10M records)
-
-- [ ] Create `hosts` table with `id` (SMALLINT) and `hostname` (VARCHAR 255)
-- [ ] Add `host_id` (SMALLINT) column to `log_records` with foreign key
-- [ ] Create `findOrCreateHost()` helper function with in-memory cache
-- [ ] Update `logService.js` to use host lookups during ingestion
-- [ ] Create migration script for existing production data
-- [ ] Add housekeeping task to clean up unused hosts
-- [ ] Update query/API code to JOIN with hosts table
-- [ ] Test with realistic data volumes
-- [ ] Deploy to staging, then production
-
-### 2. Deduplicate HTTP Status Codes (v1.1.0)
-
-**Goal:** Create `http_codes` lookup table for status codes  
-**Impact:** ~2-10 bytes saved per record (20-100MB per 10M records)
-
-- [ ] Create `http_codes` table with `id` (TINYINT) and `code` (VARCHAR 10)
-- [ ] Pre-populate table with standard HTTP codes (200, 404, 500, etc.)
-- [ ] Add special code `id=0` for "N/A" (for error records without HTTP status)
-- [ ] Add `code_id` (TINYINT NOT NULL) column to `log_records` with foreign key
-- [ ] Create `findOrCreateHttpCode()` helper function with cache
-- [ ] Update `logService.js` to use code lookups during ingestion
-- [ ] Create migration script for existing production data
-- [ ] Update query/API code to JOIN with http_codes table
-- [ ] Test with realistic data volumes
-- [ ] Deploy to staging, then production
-
-### 3. Use TIMESTAMP Instead of DATETIME (v1.1.0)
-
-**Goal:** Reduce storage and add timezone awareness  
-**Impact:** 4 bytes saved per record (40MB per 10M records)
-
-- [ ] Update schema: change `timestamp` column from DATETIME to TIMESTAMP
-- [ ] Verify timezone handling in application code
-- [ ] Test that existing timestamps convert correctly
-- [ ] Update any date formatting logic to handle TIMESTAMP type
-- [ ] Create migration script to convert existing column
-- [ ] Test with realistic data volumes
-- [ ] Deploy to staging, then production
-
-**Combined Impact:** ~65-265 bytes saved per record (650MB-2.7GB per 10M records)
-
-See [`docs/storage-optimization.md`](docs/storage-optimization.md) for detailed analysis and implementation strategy.
+- Advanced querying capabilities
 
 ---
 
