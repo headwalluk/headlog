@@ -88,6 +88,19 @@ const config = {
   // Security
   security: {
     skipDotenvPermissionCheck: parseBoolEnv(process.env.SKIP_DOTENV_PERMISSION_CHECK, false)
+  },
+
+  // Upstream (Hierarchical Aggregation)
+  upstream: {
+    enabled: parseBoolEnv(process.env.UPSTREAM_ENABLED, false),
+    server: process.env.UPSTREAM_SERVER || null,
+    apiKey: process.env.UPSTREAM_API_KEY || null,
+    batchSize: parseIntEnv(process.env.UPSTREAM_BATCH_SIZE, 1000),
+    batchInterval: parseIntEnv(process.env.UPSTREAM_BATCH_INTERVAL, 60),
+    batchSizeMin: parseFloat(process.env.UPSTREAM_BATCH_SIZE_MIN) || 0.2,
+    batchSizeRecovery: parseFloat(process.env.UPSTREAM_BATCH_SIZE_RECOVERY) || 0.1,
+    compression: parseBoolEnv(process.env.UPSTREAM_COMPRESSION, true),
+    instanceName: process.env.INSTANCE_NAME || require('os').hostname()
   }
 };
 

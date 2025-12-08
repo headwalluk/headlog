@@ -1,6 +1,6 @@
 {
   "name": "headlog",
-  "version": "1.3.0",
+  "version": "1.5.0",
   "description": "Centralised Apache log aggregation system",
   "main": "src/server.js",
   "scripts": {
@@ -33,11 +33,11 @@
     "@fastify/compress": "^8.0.1",
     "@fastify/rate-limit": "^10.3.0",
     "bcrypt": "^6.0.0",
-    "commander": "^12.1.0",
-    "dotenv": "^16.4.5",
+    "commander": "^14.0.2",
+    "dotenv": "^17.2.3",
     "fastify": "^5.1.0",
     "mysql2": "^3.11.5",
-    "node-cron": "^3.0.3"
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "eslint": "^9.16.0",

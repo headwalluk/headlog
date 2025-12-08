@@ -27,12 +27,14 @@ Headlog supports hierarchical log aggregation where logs flow upward through a t
 **Bottom Tier:** Web servers run Fluent Bit agents that push logs to a headlog instance (via `POST /logs`)
 
 **Middle Tier(s):** Regional/datacenter headlog instances that:
+
 - Accept logs from web servers (Fluent Bit)
 - Accept logs from downstream headlog instances
 - Buffer all logs locally in their database
 - Periodically forward all logs upstream to their parent headlog instance
 
 **Top Tier:** Central/home-base headlog instance that:
+
 - Accepts logs from regional headlog instances
 - Accepts logs from web servers (if any are co-located)
 - Has no upstream configuration (end of the hierarchy)
@@ -41,6 +43,7 @@ Headlog supports hierarchical log aggregation where logs flow upward through a t
 ### Hierarchy Examples
 
 **Two-Tier (typical):**
+
 ```
 Web Servers → Regional Headlog (DC1) → Central Headlog (Home Base)
 Web Servers → Regional Headlog (DC2) ↗
@@ -48,6 +51,7 @@ Web Servers → Regional Headlog (DC3) ↗
 ```
 
 **Three-Tier (complex deployments):**
+
 ```
 Web Servers → Office Headlog → Regional Headlog (DC1) → Central Headlog
 Web Servers → Office Headlog ↗
@@ -75,6 +79,7 @@ ADD INDEX idx_archived_at (archived_at);
 ```
 
 **Design rationale:**
+
 - `NULL` = not yet archived (easier to query than boolean)
 - Timestamp shows when archival occurred (useful for monitoring lag)
 - Index allows fast retrieval of pending records
@@ -105,11 +110,13 @@ ADD INDEX idx_upstream_batch_uuid (upstream_batch_uuid);
 ```
 
 **Storage efficiency:**
+
 - VARCHAR(36): 36 bytes + 1-2 bytes length = ~38 bytes per UUID
 - BINARY(16): 16 bytes (native UUID storage, 58% smaller)
 - With millions of records, this saves significant disk space and improves index performance
 
 **Usage in code:**
+
 ```javascript
 // Generate UUID
 const uuid = crypto.randomUUID(); // '550e8400-e29b-41d4-a716-446655440000'
@@ -118,13 +125,18 @@ const uuid = crypto.randomUUID(); // '550e8400-e29b-41d4-a716-446655440000'
 const binaryUuid = Buffer.from(uuid.replace(/-/g, ''), 'hex');
 
 // Store in database
-await pool.query('INSERT INTO upstream_sync_batches (batch_uuid, ...) VALUES (?, ...)', [binaryUuid]);
+await pool.query('INSERT INTO upstream_sync_batches (batch_uuid, ...) VALUES (?, ...)', [
+  binaryUuid
+]);
 
 // Convert back to string for display/logging
-const uuidString = binaryUuid.toString('hex').replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+const uuidString = binaryUuid
+  .toString('hex')
+  .replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
 ```
 
 **Benefits:**
+
 - Track batches independently for retry/recovery
 - Identify which records were in failed batches
 - Prevent partial batch duplicates
@@ -158,6 +170,7 @@ UPSTREAM_COMPRESSION=true                           # Gzip compress batches befo
 ### Example Configurations
 
 **Regional Headlog (DC1):**
+
 ```bash
 UPSTREAM_ENABLED=true
 UPSTREAM_SERVER=https://log-central.headwall.net
@@ -168,6 +181,7 @@ LOG_RETENTION_DAYS=2                     # Keep archived logs for 2 days, un-arc
 ```
 
 **Central Headlog:**
+
 ```bash
 UPSTREAM_ENABLED=false
 LOG_RETENTION_DAYS=365  # Keep all logs for 1 year
@@ -175,6 +189,7 @@ LOG_RETENTION_DAYS=365  # Keep all logs for 1 year
 ```
 
 **Standalone Headlog (no hierarchy):**
+
 ```bash
 UPSTREAM_ENABLED=false
 # Works exactly like current v1.0.1 behavior
@@ -222,15 +237,15 @@ function isNextBatchUploadDue(config) {
   if (!config.upstream.enabled) {
     return false;
   }
-  
+
   if (lastSyncAttempt === null) {
     return true; // First run
   }
-  
+
   const now = Date.now();
   const intervalMs = config.upstream.batchInterval * 1000;
   const timeSinceLastSync = now - lastSyncAttempt;
-  
+
   return timeSinceLastSync >= intervalMs;
 }
 
@@ -242,9 +257,9 @@ async function performUpstreamSyncIfDue(config) {
   if (!isNextBatchUploadDue(config)) {
     return; // Too soon, skip this cron cycle
   }
-  
+
   lastSyncAttempt = Date.now();
-  
+
   try {
     await performUpstreamSync(config);
   } catch (error) {
@@ -271,6 +286,7 @@ if (cluster.isPrimary || (cluster.isWorker && cluster.worker.id === 1)) {
 ```
 
 **Benefits:**
+
 - Consistent with existing housekeeping mechanism
 - Natural throttling without blocking event loop
 - Easy to test (just call `isNextBatchUploadDue()`)
@@ -300,9 +316,11 @@ function getAdaptiveBatchSize(config) {
 function reduceBatchSize(config) {
   const minMultiplier = config.upstream.batchSizeMin || 0.2; // Default 20% floor
   batchSizeMultiplier = Math.max(minMultiplier, batchSizeMultiplier - 0.2);
-  
+
   const newSize = getAdaptiveBatchSize(config);
-  console.log(`Reduced batch size to ${newSize} records (${Math.round(batchSizeMultiplier * 100)}%)`);
+  console.log(
+    `Reduced batch size to ${newSize} records (${Math.round(batchSizeMultiplier * 100)}%)`
+  );
 }
 
 /**
@@ -312,10 +330,12 @@ function increaseBatchSize(config) {
   const recoveryIncrement = config.upstream.batchSizeRecovery || 0.1; // Default 10%
   const oldMultiplier = batchSizeMultiplier;
   batchSizeMultiplier = Math.min(1.0, batchSizeMultiplier + recoveryIncrement);
-  
+
   if (batchSizeMultiplier > oldMultiplier) {
     const newSize = getAdaptiveBatchSize(config);
-    console.log(`Increased batch size to ${newSize} records (${Math.round(batchSizeMultiplier * 100)}%)`);
+    console.log(
+      `Increased batch size to ${newSize} records (${Math.round(batchSizeMultiplier * 100)}%)`
+    );
   }
 }
 
@@ -325,23 +345,23 @@ function increaseBatchSize(config) {
 async function performUpstreamSync(config) {
   const batchSize = getAdaptiveBatchSize(config);
   const records = await getUnArchivedRecords(batchSize);
-  
+
   if (records.length === 0) return;
-  
+
   const recordIds = records.map(r => r.id);
-  
+
   try {
     await postToUpstream(records, config);
     await markRecordsArchived(recordIds);
-    
+
     // Success: gradually increase batch size back to target
     increaseBatchSize(config);
-    
+
     console.log(`Archived ${recordIds.length} records to upstream`);
   } catch (error) {
     // Failure: reduce batch size for next attempt
     reduceBatchSize(config);
-    
+
     console.error('Failed to post to upstream:', error.message);
   }
 }
@@ -349,20 +369,21 @@ async function performUpstreamSync(config) {
 
 **Adaptive behavior example:**
 
-| Attempt | Result  | Multiplier | Batch Size | Notes                     |
-|---------|---------|------------|------------|---------------------------|
-| 1       | Fail    | 1.0 → 0.8  | 800        | Initial failure           |
-| 2       | Fail    | 0.8 → 0.6  | 600        | Reduce again              |
-| 3       | Fail    | 0.6 → 0.4  | 400        | Continue reducing         |
-| 4       | Fail    | 0.4 → 0.2  | 200        | Hit floor (20%)           |
-| 5       | Fail    | 0.2 → 0.2  | 200        | Stay at floor             |
-| 6       | Success | 0.2 → 0.3  | 300        | Start recovery            |
-| 7       | Success | 0.3 → 0.4  | 400        | Gradual increase          |
-| 8       | Success | 0.4 → 0.5  | 500        | Halfway back              |
-| ...     | Success | ...        | ...        | ...                       |
-| 14      | Success | 0.9 → 1.0  | 1000       | Full recovery to target   |
+| Attempt | Result  | Multiplier | Batch Size | Notes                   |
+| ------- | ------- | ---------- | ---------- | ----------------------- |
+| 1       | Fail    | 1.0 → 0.8  | 800        | Initial failure         |
+| 2       | Fail    | 0.8 → 0.6  | 600        | Reduce again            |
+| 3       | Fail    | 0.6 → 0.4  | 400        | Continue reducing       |
+| 4       | Fail    | 0.4 → 0.2  | 200        | Hit floor (20%)         |
+| 5       | Fail    | 0.2 → 0.2  | 200        | Stay at floor           |
+| 6       | Success | 0.2 → 0.3  | 300        | Start recovery          |
+| 7       | Success | 0.3 → 0.4  | 400        | Gradual increase        |
+| 8       | Success | 0.4 → 0.5  | 500        | Halfway back            |
+| ...     | Success | ...        | ...        | ...                     |
+| 14      | Success | 0.9 → 1.0  | 1000       | Full recovery to target |
 
 **Benefits:**
+
 - Automatically adapts to upstream capacity and network conditions
 - Prevents repeated large batch failures from blocking sync indefinitely
 - Graceful degradation under load
@@ -376,6 +397,7 @@ async function performUpstreamSync(config) {
 ### Challenge
 
 If network fails mid-POST or upstream returns an error after processing, we need to ensure:
+
 1. Records aren't duplicated on the upstream server
 2. We don't lose records by marking them archived prematurely
 3. Retries are safe and don't create duplicates
@@ -392,39 +414,39 @@ This approach combines batch tracking on the regional instance with deduplicatio
 async function performUpstreamSync(config) {
   const batchSize = getAdaptiveBatchSize(config);
   const records = await getUnArchivedRecords(batchSize);
-  
+
   if (records.length === 0) return;
-  
+
   // Generate unique batch ID with collision check
   let batchUuid, batchUuidBinary;
   let attempts = 0;
   const maxAttempts = 3; // Paranoid safety limit
-  
+
   while (attempts < maxAttempts) {
     batchUuid = crypto.randomUUID();
     batchUuidBinary = Buffer.from(batchUuid.replace(/-/g, ''), 'hex');
-    
+
     // Check if this UUID already exists (extremely unlikely, but defensive)
     const [existing] = await pool.query(
       'SELECT id FROM upstream_sync_batches WHERE batch_uuid = ?',
       [batchUuidBinary]
     );
-    
+
     if (existing.length === 0) {
       break; // UUID is unique, proceed
     }
-    
+
     // Collision detected (should never happen in practice)
     console.warn(`UUID collision detected on attempt ${attempts + 1}: ${batchUuid}`);
     attempts++;
   }
-  
+
   if (attempts >= maxAttempts) {
     throw new Error('Failed to generate unique batch UUID after multiple attempts');
   }
-  
+
   const recordIds = records.map(r => r.id);
-  
+
   // Create batch tracking record
   await pool.query(
     `INSERT INTO upstream_sync_batches 
@@ -432,7 +454,7 @@ async function performUpstreamSync(config) {
      VALUES (?, ?, 'pending')`,
     [batchUuidBinary, records.length]
   );
-  
+
   // Tag records with this batch UUID
   await pool.query(
     `UPDATE log_records 
@@ -440,7 +462,7 @@ async function performUpstreamSync(config) {
      WHERE id IN (?)`,
     [batchUuidBinary, recordIds]
   );
-  
+
   try {
     // Update status to in_progress
     await pool.query(
@@ -449,14 +471,17 @@ async function performUpstreamSync(config) {
        WHERE batch_uuid = ?`,
       [batchUuidBinary]
     );
-    
+
     // POST to upstream with batch UUID
-    await postToUpstream({
-      batch_uuid: batchUuid,  // String format for JSON
-      source_instance: config.instanceName,
-      records: records
-    }, config);
-    
+    await postToUpstream(
+      {
+        batch_uuid: batchUuid, // String format for JSON
+        source_instance: config.instanceName,
+        records: records
+      },
+      config
+    );
+
     // Success: mark records as archived
     await pool.query(
       `UPDATE log_records 
@@ -464,7 +489,7 @@ async function performUpstreamSync(config) {
        WHERE id IN (?)`,
       [recordIds]
     );
-    
+
     // Mark batch as completed
     await pool.query(
       `UPDATE upstream_sync_batches 
@@ -472,10 +497,9 @@ async function performUpstreamSync(config) {
        WHERE batch_uuid = ?`,
       [batchUuidBinary]
     );
-    
+
     increaseBatchSize(config);
     console.log(`Batch ${batchUuid}: Archived ${recordIds.length} records`);
-    
   } catch (error) {
     // Failure: mark batch as failed, keep records un-archived
     await pool.query(
@@ -484,7 +508,7 @@ async function performUpstreamSync(config) {
        WHERE batch_uuid = ?`,
       [error.message, batchUuidBinary]
     );
-    
+
     // Clear batch UUID from records so they can be retried in new batch
     await pool.query(
       `UPDATE log_records 
@@ -492,7 +516,7 @@ async function performUpstreamSync(config) {
        WHERE id IN (?)`,
       [recordIds]
     );
-    
+
     reduceBatchSize(config);
     console.error(`Batch ${batchUuid} failed:`, error.message);
   }
@@ -500,6 +524,7 @@ async function performUpstreamSync(config) {
 ```
 
 **2. Prepare and send payload:**
+
 ```json
 {
   "batch_uuid": "550e8400-e29b-41d4-a716-446655440000",
@@ -527,12 +552,13 @@ CREATE TABLE batch_deduplication (
 ```
 
 **Deduplication logic:**
+
 ```javascript
 // src/routes/logs.js - Enhanced POST /logs handler
 
 async function handleLogIngestion(request, reply) {
   const { batch_uuid, source_instance, records } = request.body;
-  
+
   // Validate payload
   if (!Array.isArray(records) || records.length === 0) {
     return reply.code(400).send({
@@ -540,11 +566,11 @@ async function handleLogIngestion(request, reply) {
       message: 'Expected array of log records'
     });
   }
-  
+
   // Check for batch deduplication (hierarchical forwarding)
   if (batch_uuid && source_instance) {
     const batchUuidBinary = Buffer.from(batch_uuid.replace(/-/g, ''), 'hex');
-    
+
     // Check if we've already processed this batch
     const [existing] = await pool.query(
       `SELECT id, received_at, record_count 
@@ -552,7 +578,7 @@ async function handleLogIngestion(request, reply) {
        WHERE batch_uuid = ? AND source_instance = ?`,
       [batchUuidBinary, source_instance]
     );
-    
+
     if (existing.length > 0) {
       // Already processed - return success without re-inserting
       console.log(`Deduplicated batch ${batch_uuid} from ${source_instance}`);
@@ -567,7 +593,7 @@ async function handleLogIngestion(request, reply) {
         original_received_at: existing[0].received_at
       });
     }
-    
+
     // Record this batch to prevent future duplicates
     await pool.query(
       `INSERT INTO batch_deduplication 
@@ -576,10 +602,10 @@ async function handleLogIngestion(request, reply) {
       [batchUuidBinary, source_instance, records.length]
     );
   }
-  
+
   // Normal ingestion logic...
   const processed = await ingestLogs(records);
-  
+
   return reply.code(200).send({
     status: 'ok',
     received: records.length,
@@ -600,6 +626,7 @@ This approach provides complete idempotency and uniqueness:
 6. **Recovery from data loss**: Works even if regional instance loses batch tracking data
 
 **UUID collision probability:**
+
 - UUID v4 provides 2^122 random bits (~5.3 × 10^36 possible values)
 - Collision probability: ~1 in 2.7 × 10^18 for 1 billion UUIDs
 - Collision check provides absolute guarantee within regional instance
@@ -607,13 +634,13 @@ This approach provides complete idempotency and uniqueness:
 
 ### Failure Scenarios
 
-| Scenario | Regional Behavior | Upstream Behavior | Result |
-|----------|-------------------|-------------------|--------|
-| POST fails mid-flight | Marks batch 'failed', clears batch_uuid, records remain un-archived | Never receives batch | Records retried in new batch ✓ |
-| POST succeeds, response lost | Marks batch 'failed' (timeout), keeps records un-archived | Processes batch, records dedup entry | Retry detected as duplicate, no data loss ✓ |
-| Upstream processes but returns error | Marks batch 'failed', records un-archived | Processes batch, records dedup entry | Retry detected as duplicate ✓ |
-| Regional database fails | Batch tracking lost | Dedup table intact | Can resend, upstream rejects duplicates ✓ |
-| Upstream database fails | Batch marked 'failed' | No dedup entry | Retry processes normally ✓ |
+| Scenario                             | Regional Behavior                                                   | Upstream Behavior                    | Result                                      |
+| ------------------------------------ | ------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------- |
+| POST fails mid-flight                | Marks batch 'failed', clears batch_uuid, records remain un-archived | Never receives batch                 | Records retried in new batch ✓              |
+| POST succeeds, response lost         | Marks batch 'failed' (timeout), keeps records un-archived           | Processes batch, records dedup entry | Retry detected as duplicate, no data loss ✓ |
+| Upstream processes but returns error | Marks batch 'failed', records un-archived                           | Processes batch, records dedup entry | Retry detected as duplicate ✓               |
+| Regional database fails              | Batch tracking lost                                                 | Dedup table intact                   | Can resend, upstream rejects duplicates ✓   |
+| Upstream database fails              | Batch marked 'failed'                                               | No dedup entry                       | Retry processes normally ✓                  |
 
 ### Housekeeping
 
@@ -635,6 +662,7 @@ await pool.query(
 ```
 
 **Retention recommendations:**
+
 - Regional `upstream_sync_batches`: Keep completed batches for 7 days, failed batches for 30 days
 - Upstream `batch_deduplication`: Keep for 30 days (longer than any reasonable network outage)
 
@@ -645,14 +673,16 @@ await pool.query(
 **Regional Headlog (DC1):**
 
 1. **Query un-archived records:**
+
    ```sql
-   SELECT * FROM log_records 
-   WHERE archived_at IS NULL 
-   ORDER BY timestamp ASC 
+   SELECT * FROM log_records
+   WHERE archived_at IS NULL
+   ORDER BY timestamp ASC
    LIMIT 1000;
    ```
 
 2. **Prepare payload:**
+
    ```json
    {
      "batch_uuid": "550e8400-e29b-41d4-a716-446655440000",
@@ -675,27 +705,29 @@ await pool.query(
    ```
 
 3. **POST to upstream:**
+
    ```bash
    POST https://log-central.headwall.net/logs
    X-API-Key: regional-dc1-key
    Content-Encoding: gzip
    Content-Type: application/json
-   
+
    [gzipped JSON payload]
    ```
 
 4. **On success (200 OK):**
+
    ```sql
-   UPDATE log_records 
-   SET archived_at = NOW() 
+   UPDATE log_records
+   SET archived_at = NOW()
    WHERE id IN (12345, 12346, ..., 13344);
    ```
 
 5. **Later (housekeeping purges archived records):**
    ```sql
    -- Only purge records that are both archived AND older than retention period
-   DELETE FROM log_records 
-   WHERE archived_at IS NOT NULL 
+   DELETE FROM log_records
+   WHERE archived_at IS NOT NULL
      AND archived_at < NOW() - INTERVAL 2 DAY;
    ```
 
@@ -705,6 +737,7 @@ await pool.query(
 2. **Checks for duplicate batch** (if using Option C)
 3. **Processes records normally** - same as if they came from web servers
 4. **Returns success:**
+
    ```json
    {
      "status": "ok",
@@ -723,18 +756,21 @@ await pool.query(
 2. **Downstream headlog instances** - Upstream sync via `POST /logs`
 
 The regional instance treats both identically:
+
 - Same endpoint (`POST /logs`)
 - Same authentication (API keys)
 - Same storage (all go to `log_records`)
 - Same upstream forwarding (both get synced to central)
 
 **Example Regional DC1 receives from:**
+
 - 50 web servers in DC1 (direct via Fluent Bit)
 - 2 edge headlog instances in remote offices (via upstream sync)
 - All logs stored locally in `log_records`
 - All logs forwarded to central headlog
 
 **This means:** You can build arbitrarily deep hierarchies:
+
 ```
 Web Servers → Office Headlog → Regional Headlog → Central Headlog
 ```
@@ -850,6 +886,7 @@ ADD COLUMN can_forward_logs BOOLEAN NOT NULL DEFAULT true
 ```
 
 This allows differentiation between:
+
 - Web server API keys (can't forward, only direct logs)
 - Regional headlog API keys (can forward batches)
 
@@ -868,15 +905,18 @@ This allows differentiation between:
 **Decision:** Automatic purging respects upstream sync status
 
 When `UPSTREAM_ENABLED=true`:
+
 - Only purge records where `archived_at IS NOT NULL` AND older than `LOG_RETENTION_DAYS`
 - Un-archived records are kept indefinitely (automatic buffering during upstream outages)
 - Example: Regional instance with `LOG_RETENTION_DAYS=2` keeps archived logs for 2 days, but buffers un-archived logs forever until upstream link recovers
 
 When `UPSTREAM_ENABLED=false`:
+
 - Purge records older than `LOG_RETENTION_DAYS` (current standalone behavior)
 - Example: Central instance with `LOG_RETENTION_DAYS=365` keeps all logs for 1 year
 
 This approach:
+
 - Prevents data loss during network outages
 - Allows regional instances to use aggressive retention (low disk usage)
 - Central instance controls long-term retention policy
@@ -887,6 +927,7 @@ This approach:
 **Impact:** Un-archived records are lost (same as current standalone behavior)
 
 This is acceptable because:
+
 - Same risk exists today in standalone deployments
 - Adding write-ahead log adds significant complexity
 - Most production setups have database backups/replication
@@ -897,12 +938,14 @@ This is acceptable because:
 **Decision:** Each headlog instance has exactly zero or one upstream server
 
 Multi-upstream adds significant complexity without clear benefit:
+
 - Buffering provides automatic fault tolerance during outages
 - Redundancy better handled at infrastructure level (load balancers, failover DNS)
 - Duplicate detection becomes much more complex
 - Most users don't need this complexity
 
 **Not supported:**
+
 ```
      Regional DC1
     /            \
@@ -911,6 +954,7 @@ Central A    Central B  ← Redundant upstreams
 ```
 
 **Correct architecture:**
+
 ```
 Regional DC1 → Central A → [manual failover if needed]
 ```
@@ -920,12 +964,14 @@ Regional DC1 → Central A → [manual failover if needed]
 **Decision:** Include schema version in batch metadata; central validates compatibility
 
 Upgrade procedure:
+
 1. Upgrade central headlog first
 2. Test with one regional instance
 3. Roll out to remaining regional instances
 4. Central rejects batches from incompatible versions with clear error message
 
 Batch payload includes:
+
 ```json
 {
   "batch_uuid": "...",

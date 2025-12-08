@@ -10,15 +10,15 @@ const codeCache = new Map();
  */
 async function initializeCodeCache() {
   const pool = getPool();
-  
+
   try {
     const [codes] = await pool.query('SELECT id, code, description FROM http_codes ORDER BY id');
-    
+
     codeCache.clear();
     for (const row of codes) {
       codeCache.set(row.code, row.id);
     }
-    
+
     console.log(`[HttpCodeService] Loaded ${codes.length} HTTP codes into cache`);
   } catch (error) {
     console.error('[HttpCodeService] Failed to initialize code cache:', error.message);
@@ -37,38 +37,38 @@ async function findOrCreateHttpCode(code) {
   if (!code) {
     return 0; // N/A
   }
-  
+
   // Normalize code to string
   const codeStr = String(code).trim();
-  
+
   // Check cache first
   if (codeCache.has(codeStr)) {
     return codeCache.get(codeStr);
   }
-  
+
   // Parse to number for ID (HTTP codes are numeric)
   const codeNum = parseInt(codeStr, 10);
-  
+
   // Validate: must be 0-255 (TINYINT UNSIGNED range) and typically 100-599 for HTTP
   if (isNaN(codeNum) || codeNum < 0 || codeNum > 255) {
     console.warn(`[HttpCodeService] Invalid HTTP code: "${code}" - using N/A`);
     return 0; // N/A
   }
-  
+
   // Insert new code into database (using code number as ID)
   const pool = getPool();
-  
+
   try {
     await pool.query(
       'INSERT INTO http_codes (id, code) VALUES (?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)',
       [codeNum, codeStr]
     );
-    
+
     // Add to cache
     codeCache.set(codeStr, codeNum);
-    
+
     console.log(`[HttpCodeService] Added new HTTP code: ${codeStr} (ID: ${codeNum})`);
-    
+
     return codeNum;
   } catch (error) {
     console.error(`[HttpCodeService] Failed to create HTTP code "${code}":`, error.message);
@@ -83,12 +83,12 @@ async function findOrCreateHttpCode(code) {
  */
 async function getHttpCodeById(codeId) {
   const pool = getPool();
-  
+
   const [rows] = await pool.query(
     'SELECT id, code, description, created_at FROM http_codes WHERE id = ?',
     [codeId]
   );
-  
+
   return rows.length > 0 ? rows[0] : null;
 }
 
@@ -98,11 +98,9 @@ async function getHttpCodeById(codeId) {
  */
 async function getAllHttpCodes() {
   const pool = getPool();
-  
-  const [rows] = await pool.query(
-    'SELECT id, code, description FROM http_codes ORDER BY id'
-  );
-  
+
+  const [rows] = await pool.query('SELECT id, code, description FROM http_codes ORDER BY id');
+
   return rows;
 }
 
@@ -112,7 +110,7 @@ async function getAllHttpCodes() {
  */
 async function getHttpCodeStats() {
   const pool = getPool();
-  
+
   const [rows] = await pool.query(`
     SELECT 
       hc.id,
@@ -125,7 +123,7 @@ async function getHttpCodeStats() {
     GROUP BY hc.id, hc.code, hc.description
     ORDER BY usage_count DESC, hc.id ASC
   `);
-  
+
   return rows;
 }
 

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-12-08
+
+### Added
+
+- **Hierarchical Aggregation: Core Implementation** (Phase 1)
+  - Multi-datacenter log forwarding with tree-like topology
+  - Database schema changes (Migration 1.5.0):
+    - `archived_at` TIMESTAMP column for tracking upstream sync status
+    - `upstream_sync_batches` table for batch tracking with UUID-based idempotency
+    - `upstream_batch_uuid` column on log_records for batch association
+    - `batch_deduplication` table for upstream instance deduplication
+  - Upstream configuration section with 9 new environment variables
+  - `upstreamSyncService.js` with adaptive batch sizing:
+    - Automatic batch size reduction (20%) on failure
+    - Gradual recovery (10% increase) on success
+    - UUID collision detection with retry logic (max 3 attempts)
+    - Native fetch API for HTTP POST (no axios dependency)
+    - Optional gzip compression for bandwidth efficiency
+  - `upstreamSync.js` cron task with interval throttling
+  - Batch deduplication in POST /logs handler for upstream forwarding
+  - Modified housekeeping purge logic to respect archived_at when upstream enabled
+  - Un-archived records buffered indefinitely during upstream outages
+
+### Changed
+
+- Housekeeping now only purges archived records when upstream forwarding is enabled
+- POST /logs handler now supports both direct ingestion and hierarchical batch format
+
 ## [1.3.0] - 2025-12-08
 
 ### Added
@@ -121,7 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Checks for 600 or 400 permissions
   - Exits with detailed error if too permissive
   - `SKIP_DOTENV_PERMISSION_CHECK` bypass option for compatibility
-- **README Enhancements**: 
+- **README Enhancements**:
   - Version, license, Node version, and test status badges
   - Removed development warning
   - Project marked as production-ready

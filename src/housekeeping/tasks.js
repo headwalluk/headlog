@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const config = require('../config');
 const { getPool } = require('../config/database');
+const { performUpstreamSyncIfDue } = require('../tasks/upstreamSync');
 
 /**
  * Initialize housekeeping tasks
@@ -14,17 +15,25 @@ function initHousekeeping() {
 
   console.log('✓ Housekeeping tasks enabled on worker 0');
 
-  // Task 1: Purge old logs - Daily at 2:00 AM
+  // Task 1: Upstream sync - Every minute (throttled by interval)
+  if (config.upstream.enabled) {
+    console.log('✓ Upstream sync task enabled');
+    cron.schedule('* * * * *', async () => {
+      await performUpstreamSyncIfDue(config);
+    });
+  }
+
+  // Task 2: Purge old logs - Daily at 2:00 AM
   cron.schedule('0 2 * * *', async () => {
     await purgeOldLogs();
   });
 
-  // Task 2: Delete inactive websites - Daily at 3:00 AM
+  // Task 3: Delete inactive websites - Daily at 3:00 AM
   cron.schedule('0 3 * * *', async () => {
     await deleteInactiveWebsites();
   });
 
-  // Task 3: Clean up API key stats - Weekly Sunday at 4:00 AM
+  // Task 4: Clean up API key stats - Weekly Sunday at 4:00 AM
   cron.schedule('0 4 * * 0', async () => {
     await cleanupApiKeyStats();
   });
@@ -32,6 +41,7 @@ function initHousekeeping() {
 
 /**
  * Purge log records older than LOG_RETENTION_DAYS
+ * When upstream forwarding is enabled, only purge archived records
  */
 async function purgeOldLogs() {
   const retentionDays = config.housekeeping.logRetentionDays;
@@ -40,10 +50,23 @@ async function purgeOldLogs() {
   try {
     console.log(`[Housekeeping] Purging logs older than ${retentionDays} days...`);
 
-    const [result] = await pool.query(
-      'DELETE FROM log_records WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
-      [retentionDays]
-    );
+    let query, params;
+
+    if (config.upstream.enabled) {
+      // When upstream is enabled, only purge archived records
+      // Un-archived records are buffered indefinitely until upstream sync succeeds
+      query = `DELETE FROM log_records 
+               WHERE archived_at IS NOT NULL 
+               AND archived_at < DATE_SUB(NOW(), INTERVAL ? DAY)`;
+      params = [retentionDays];
+      console.log('[Housekeeping] Upstream enabled: Purging only archived records');
+    } else {
+      // When upstream is disabled, purge based on created_at
+      query = 'DELETE FROM log_records WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)';
+      params = [retentionDays];
+    }
+
+    const [result] = await pool.query(query, params);
 
     console.log(`[Housekeeping] ✓ Purged ${result.affectedRows} old log records`);
   } catch (error) {

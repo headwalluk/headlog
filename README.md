@@ -242,6 +242,7 @@ Automated maintenance tasks (run on PM2 worker 0 only):
 ✅ Storage optimizations complete (v1.3.0)
 
 **Storage Optimizations:**
+
 - Host deduplication using lookup table (~50-250 bytes/record saved)
 - HTTP code deduplication with IANA registry (~2-10 bytes/record saved)
 - DATETIME → TIMESTAMP conversion (4 bytes/record saved)
@@ -263,50 +264,57 @@ See [`docs/storage-optimization.md`](docs/storage-optimization.md) for technical
 
 Multi-datacenter log forwarding with hierarchical topology. See [`docs/hierarchical-aggregation.md`](docs/hierarchical-aggregation.md) for complete design.
 
-### Phase 1: Core Implementation (v1.5.0)
+### Phase 1: Core Implementation (v1.5.0) ✅
 
-**Database Schema:**
-- [ ] Add `archived_at` TIMESTAMP column to `log_records`
-- [ ] Create `upstream_sync_batches` table (batch UUID, status, timestamps)
-- [ ] Add `upstream_batch_uuid` column to `log_records`
-- [ ] Create `batch_deduplication` table for upstream instances
-- [ ] Write migration script (1.5.0-hierarchical-aggregation.sql)
+**Database Schema:** ✅
 
-**Configuration:**
-- [ ] Add upstream config to `src/config/index.js`
+- [x] Add `archived_at` TIMESTAMP column to `log_records`
+- [x] Create `upstream_sync_batches` table (batch UUID, status, timestamps)
+- [x] Add `upstream_batch_uuid` column to `log_records`
+- [x] Create `batch_deduplication` table for upstream instances
+- [x] Write migration script (1.5.0-hierarchical-aggregation.sql)
+
+**Configuration:** ✅
+
+- [x] Add upstream config to `src/config/index.js`
   - `UPSTREAM_ENABLED`, `UPSTREAM_SERVER`, `UPSTREAM_API_KEY`
   - `UPSTREAM_BATCH_SIZE`, `UPSTREAM_BATCH_INTERVAL`
   - `UPSTREAM_BATCH_SIZE_MIN`, `UPSTREAM_BATCH_SIZE_RECOVERY`
-  - `UPSTREAM_COMPRESSION`
+  - `UPSTREAM_COMPRESSION`, `INSTANCE_NAME`
 
-**Core Sync Service:**
-- [ ] Create `src/services/upstreamSyncService.js`
+**Core Sync Service:** ✅
+
+- [x] Create `src/services/upstreamSyncService.js`
   - `getUnArchivedRecords()` - Query pending logs
   - `getAdaptiveBatchSize()` - Dynamic batch sizing
   - `reduceBatchSize()` / `increaseBatchSize()` - Adaptive algorithm
-  - `postToUpstream()` - HTTP POST with compression
+  - `postToUpstream()` - Native fetch with compression
   - `markRecordsArchived()` - Update archived_at timestamps
   - `performUpstreamSync()` - Main sync orchestration with batch tracking
   - UUID collision check with retry logic
 
-**Cron Task:**
-- [ ] Create `src/tasks/upstreamSync.js`
+**Cron Task:** ✅
+
+- [x] Create `src/tasks/upstreamSync.js`
   - `isNextBatchUploadDue()` - Interval throttling
   - `performUpstreamSyncIfDue()` - Cron entry point
-- [ ] Register cron task in `src/housekeeping/tasks.js` (worker 0 only)
+- [x] Register cron task in `src/housekeeping/tasks.js` (worker 0 only)
 
-**Upstream Deduplication:**
-- [ ] Add batch deduplication logic to `POST /logs` handler
+**Upstream Deduplication:** ✅
+
+- [x] Add batch deduplication logic to `POST /logs` handler
   - Check `batch_deduplication` table
   - Insert new batch records
   - Return success for duplicate batches
 
-**Housekeeping:**
-- [ ] Modify purge logic to respect `archived_at` when upstream enabled
+**Housekeeping:** ✅
+
+- [x] Modify purge logic to respect `archived_at` when upstream enabled
   - Only purge: `archived_at IS NOT NULL AND older than LOG_RETENTION_DAYS`
   - Un-archived records buffered indefinitely during outages
 
 **Testing:**
+
 - [ ] Unit tests for adaptive batch sizing
 - [ ] Unit tests for UUID collision handling
 - [ ] Integration test: two headlog instances (regional → central)
@@ -314,6 +322,7 @@ Multi-datacenter log forwarding with hierarchical topology. See [`docs/hierarchi
 - [ ] Test duplicate batch rejection on upstream
 
 **Documentation:**
+
 - [ ] Update `QUICKSTART.md` with hierarchy setup instructions
 - [ ] Update `docs/deployment-checklist.md` with upstream configuration
 - [ ] Add example configurations (regional, central, standalone)
