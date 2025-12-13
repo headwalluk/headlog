@@ -2,10 +2,17 @@ const config = require('./config');
 const fastify = require('fastify');
 const compress = require('@fastify/compress');
 const rateLimit = require('@fastify/rate-limit');
+const view = require('@fastify/view');
+const session = require('@fastify/session');
+const cookie = require('@fastify/cookie');
+const formbody = require('@fastify/formbody');
+const staticPlugin = require('@fastify/static');
+const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
 const { initDatabase, closeDatabase } = require('./config/database');
 const { authenticate } = require('./middleware/auth');
+const MySQLSessionStore = require('./config/sessionStore');
 const logRoutes = require('./routes/logs');
 const websiteRoutes = require('./routes/websites');
 const { initHousekeeping } = require('./housekeeping/tasks');
@@ -187,6 +194,67 @@ async function start() {
     await prewarmHostCache(1000); // Load top 1000 hosts by last_seen_at
     app.log.info('Host cache pre-warmed successfully');
 
+    // Register plugins for UI (if enabled)
+    if (config.ui.enabled) {
+      app.log.info('Configuring Web UI...');
+
+      // Register cookie support (required by session)
+      await app.register(cookie);
+
+      // Register session support with MySQL store
+      const sessionStore = new MySQLSessionStore({
+        tableName: config.session.tableName,
+        ttl: config.session.maxAge
+      });
+
+      await app.register(session, {
+        secret: config.session.secret,
+        cookie: {
+          secure: config.session.secure,
+          maxAge: config.session.maxAge,
+          httpOnly: true,
+          sameSite: 'strict'
+        },
+        store: sessionStore,
+        saveUninitialized: false,
+        rolling: true
+      });
+
+      // Register form body parser
+      await app.register(formbody);
+
+      // Register static file serving
+      await app.register(staticPlugin, {
+        root: path.join(__dirname, '..', 'public'),
+        prefix: '/static/'
+      });
+
+      // Register view engine (EJS)
+      await app.register(view, {
+        engine: { ejs },
+        root: path.join(__dirname, 'views'),
+        options: {
+          filename: path.join(__dirname, 'views')
+        }
+      });
+
+      // Decorator to add common data to view context
+      app.decorateReply('renderView', function (template, data = {}) {
+        return this.view(template, {
+          ...data,
+          user: this.request.user || null,
+          session: this.request.session || null,
+          config: {
+            appName: 'Headlog',
+            version: require('../package.json').version,
+            env: config.env
+          }
+        });
+      });
+
+      app.log.info('Web UI configured successfully');
+    }
+
     // Health check endpoint (no auth required)
     app.get('/health', async (request, reply) => {
       return reply.code(200).send({
@@ -196,17 +264,39 @@ async function start() {
       });
     });
 
-    // Register authentication hook for all routes except /health
+    // Register authentication hook for API routes only
     app.addHook('onRequest', async (request, reply) => {
-      if (request.url === '/health') {
-        return; // Skip auth for health check
+      // Skip auth for health check and UI routes (UI has its own session auth)
+      if (
+        request.url === '/health' ||
+        request.url.startsWith('/static/') ||
+        request.url.startsWith('/auth/') ||
+        request.url === '/login' ||
+        request.url === '/'
+      ) {
+        return;
       }
-      await authenticate(request, reply);
+
+      // Require API key for /api routes
+      if (request.url.startsWith('/api')) {
+        await authenticate(request, reply);
+      }
     });
 
-    // Register routes
-    await app.register(logRoutes);
-    await app.register(websiteRoutes);
+    // Register API routes under /api prefix
+    await app.register(logRoutes, { prefix: '/api' });
+    await app.register(websiteRoutes, { prefix: '/api' });
+
+    // Register UI routes (if enabled)
+    if (config.ui.enabled) {
+      const authRoutes = require('./routes/auth');
+      const uiRoutes = require('./routes/ui');
+
+      await app.register(authRoutes, { prefix: '/auth' });
+      await app.register(uiRoutes);
+
+      app.log.info('Web UI routes registered');
+    }
 
     // Initialize housekeeping tasks (only on worker 0)
     initHousekeeping();

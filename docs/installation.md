@@ -326,7 +326,7 @@ Create `/etc/fluent-bit/fluent-bit.conf`:
     Match *
     Host  logs.yourdomain.com
     Port  443
-    URI   /logs
+    URI   /api/logs
     Format json
     Header Authorization Bearer YOUR_API_KEY_HERE
     tls   On
@@ -368,7 +368,7 @@ Should return: `{"status":"ok","timestamp":"..."}`
 
 ```bash
 # View websites discovered
-curl https://logs.yourdomain.com/websites \
+curl https://logs.yourdomain.com/api/websites \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Check database directly

@@ -90,6 +90,24 @@ const config = {
     skipDotenvPermissionCheck: parseBoolEnv(process.env.SKIP_DOTENV_PERMISSION_CHECK, false)
   },
 
+  // Log Processing
+  logProcessing: {
+    stripPortFromRemoteIP: parseBoolEnv(process.env.STRIP_PORT_FROM_REMOTE_IP, false)
+  },
+
+  // Session
+  session: {
+    secret: process.env.SESSION_SECRET || 'headlog-dev-secret-change-in-production',
+    maxAge: parseIntEnv(process.env.SESSION_MAX_AGE, 86400000), // 24 hours default
+    secure: parseBoolEnv(process.env.SESSION_SECURE, false), // true in production with HTTPS
+    tableName: 'sessions'
+  },
+
+  // UI
+  ui: {
+    enabled: parseBoolEnv(process.env.UI_ENABLED, true)
+  },
+
   // Upstream (Hierarchical Aggregation)
   upstream: {
     enabled: parseBoolEnv(process.env.UPSTREAM_ENABLED, false),

@@ -68,7 +68,7 @@ curl http://localhost:3000/health
 **Ingest a test log:**
 
 ```bash
-curl -X POST http://localhost:3000/logs \
+curl -X POST http://localhost:3000/api/logs \
   -H "Authorization: Bearer YOUR_API_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '[{

@@ -1,8 +1,25 @@
 const { getPool } = require('../config/database');
+const config = require('../config');
 const { extractDomain, extractLogType } = require('../utils/extractDomain');
 const { findOrCreateWebsite, updateWebsiteActivity } = require('./websiteService');
 const { findOrCreateHttpCode } = require('./httpCodeService');
 const { getOrCreateHostIds } = require('./hostService');
+
+/**
+ * Strip port number from IP address (both IPv4 and IPv6)
+ * Examples:
+ *   - "86.20.152.215:57116" → "86.20.152.215"
+ *   - "2a0e:d600:0:430::2:57228" → "2a0e:d600:0:430::2"
+ *   - "192.168.1.1" → "192.168.1.1" (no change if no port)
+ * @param {string} address - IP address with optional port
+ * @returns {string} IP address without port
+ */
+function stripPortFromIP(address) {
+  if (!address) return address;
+  // Remove :port from end (port is always numeric)
+  // This works for both IPv4 and IPv6 because ports contain only digits
+  return address.replace(/:(\d+)$/, '');
+}
 
 /**
  * Process and store log records from Fluent Bit
@@ -70,6 +87,12 @@ async function ingestLogs(logRecords) {
       // Get host ID from batch-fetched map
       const hostId = hostMap.get(record.host);
 
+      // Process remote IP (strip port if configured)
+      let remoteIP = record.remote || null;
+      if (remoteIP && config.logProcessing.stripPortFromRemoteIP) {
+        remoteIP = stripPortFromIP(remoteIP);
+      }
+
       // Prepare record for insertion
       processedRecords.push([
         websiteId,
@@ -77,7 +100,7 @@ async function ingestLogs(logRecords) {
         timestamp,
         hostId,
         codeId,
-        record.remote || null,
+        remoteIP,
         JSON.stringify(record)
       ]);
     } catch (error) {

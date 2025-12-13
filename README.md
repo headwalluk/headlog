@@ -16,6 +16,21 @@ Headlog replaces brittle shell scripts with a robust JSON-based log pipeline. Fl
 
 Perfect for organizations managing multiple web servers who want centralized log storage without SaaS lock-in.
 
+---
+
+## 🚧 Current Development
+
+**⚠️ Work In Progress:** Version 2.0.0 is under active development, adding:
+
+- Web-based administration UI
+- User authentication and role-based access control
+- Security analysis with batch log processing
+- Enhanced management interfaces
+
+**📋 Track Progress:** See [dev-notes/project-tracker.md](dev-notes/project-tracker.md) for detailed milestones and task checklists.
+
+---
+
 ## Key Features
 
 ### Core Functionality
@@ -126,11 +141,12 @@ Complete documentation available in the [`docs/`](docs/) directory:
 - **[Hierarchical Aggregation](docs/hierarchical-aggregation.md)** - Multi-datacenter forwarding
 
 **Additional documentation (coming soon):**
+
 - API Reference - REST API endpoints and usage examples
 - CLI Reference - Command-line interface documentation
 - Operations Guide - Monitoring, maintenance, and troubleshooting
 
-**Development notes:** See [`dev-notes/`](dev-notes/) for design decisions and implementation details.
+**Development notes:** See [`dev-notes/`](dev-notes/) for design decisions and implementation details. **Active work tracked in [project-tracker.md](dev-notes/project-tracker.md).**
 
 ## System Requirements
 
@@ -163,9 +179,9 @@ node cli.js schema:history
 
 ### Authenticated (Bearer Token)
 
-- `POST /logs` - Ingest log records (bulk)
-- `GET /logs` - Query logs (Phase 2)
-- `GET /websites` - List discovered websites
+- `POST /api/logs` - Ingest log records (bulk)
+- `GET /api/logs` - Query logs (Phase 2)
+- `GET /api/websites` - List discovered websites
 
 See [dev-notes/api-usage.md](dev-notes/api-usage.md) for technical API details.
 

@@ -1,0 +1,146 @@
+<%- include('partials/head', { title: 'Dashboard' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('partials/sidebar', { currentPath: '/dashboard' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Dashboard</h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-download"></i> Export
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Welcome Message -->
+        <div class="alert alert-info" role="alert">
+          <i class="bi bi-info-circle"></i> Welcome back, <strong><%= user.username %></strong>!
+          <% if (user.is_superuser) { %>
+            <span class="badge bg-danger ms-2">Superuser</span>
+          <% } %>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mb-4">
+          <div class="col-md-3 mb-3">
+            <div class="card text-bg-primary">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <i class="bi bi-file-text"></i> Log Records
+                </h5>
+                <p class="card-text display-6"><%= stats.logCount || 0 %></p>
+                <small>Total records</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card text-bg-success">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <i class="bi bi-globe"></i> Websites
+                </h5>
+                <p class="card-text display-6"><%= stats.websiteCount || 0 %></p>
+                <small>Active websites</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card text-bg-info">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <i class="bi bi-hdd-network"></i> Hosts
+                </h5>
+                <p class="card-text display-6"><%= stats.hostCount || 0 %></p>
+                <small>Active hosts</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card text-bg-warning">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <i class="bi bi-exclamation-triangle"></i> Security
+                </h5>
+                <p class="card-text display-6"><%= stats.securityEventCount || 0 %></p>
+                <small>Events (24h)</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <h2 class="h4 mb-3">Recent Activity</h2>
+        <div class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Resource</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (recentActivity && recentActivity.length > 0) { %>
+                <% recentActivity.forEach(activity => { %>
+                  <tr>
+                    <td><%= new Date(activity.created_at).toLocaleString() %></td>
+                    <td><%= activity.username || 'System' %></td>
+                    <td><%= activity.action %></td>
+                    <td><%= activity.resource_type %> #<%= activity.resource_id || 'N/A' %></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" class="text-center text-muted">No recent activity</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Quick Links -->
+        <h2 class="h4 mb-3 mt-4">Quick Actions</h2>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-file-text"></i> View Logs</h5>
+                <p class="card-text">Search and filter log records</p>
+                <a href="/logs" class="btn btn-primary btn-sm">Go to Logs</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-shield-check"></i> Security Rules</h5>
+                <p class="card-text">Manage security analysis rules</p>
+                <a href="/security/rules" class="btn btn-primary btn-sm">Manage Rules</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-globe"></i> Add Website</h5>
+                <p class="card-text">Register a new website</p>
+                <a href="/websites/new" class="btn btn-primary btn-sm">Add Website</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%- include('partials/footer') %>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
