@@ -460,9 +460,10 @@
 ### Milestone 7: UI Routing & Navigation System
 **Goal:** Establish UI routing patterns and capability-based navigation
 
-**Status:** 🔄 In Progress  
-**Target:** Day 7  
+**Status:** ✅ Complete
+**Target:** Day 7
 **Estimated Effort:** 4-6 hours
+**Actual Time:** ~5 hours
 
 **Tasks:**
 - [x] Fix dashboard to render properly
@@ -470,34 +471,54 @@
   - [x] Query only existing tables (log_records, websites, hosts, audit_log)
   - [x] Simplify stats to 3 cards instead of 4
   - [x] Add number formatting (toLocaleString) for log count
-- [ ] Create route registry system
-  - [ ] Create src/config/routes.js - central route definitions
-  - [ ] Map routes to required capabilities
-  - [ ] Export route metadata for sidebar rendering
-  - [ ] Include route patterns, labels, icons, parent routes
-- [ ] Update sidebar to use route registry
-  - [ ] Read routes from registry instead of hardcoded
-  - [ ] Filter routes by user capabilities
-  - [ ] Build hierarchical menu structure
-  - [ ] Highlight active route and parent
-- [ ] Create UI helper utilities
-  - [ ] src/utils/uiHelpers.js
-  - [ ] Function: getUserRoutes(user) - filter routes by capabilities
-  - [ ] Function: checkAccess(user, route) - verify capability match
-  - [ ] Function: formatRouteForMenu(route) - prepare route for rendering
-- [ ] Document routing patterns
-  - [ ] Create dev-notes/ui-routing.md
-  - [ ] Explain route registry structure
-  - [ ] Document capability checks
-  - [ ] Show examples of adding new routes
+  - [x] Fix database pool access (use getPool() not fastify.pool)
+  - [x] Remove is_active column check from websites query
+- [x] Create route registry system
+  - [x] Create src/config/routes.js - central route definitions
+  - [x] Map routes to required capabilities
+  - [x] Export route metadata for sidebar rendering
+  - [x] Include route patterns, labels, icons, parent routes
+- [x] Update sidebar to use route registry
+  - [x] Read routes from registry instead of hardcoded
+  - [x] Filter routes by user capabilities
+  - [x] Build hierarchical menu structure
+  - [x] Highlight active route and parent
+- [x] Create UI helper utilities
+  - [x] src/utils/uiHelpers.js
+  - [x] Function: getUserRoutes(user) - filter routes by capabilities
+  - [x] Function: checkAccess(user, route) - verify capability match
+  - [x] Function: formatRouteForMenu(route) - prepare route for rendering
+  - [x] Function: getNavigationMenu(user) - build menu structure
+  - [x] Function: hasCapability(user, capability) - check access
+  - [x] Function: isActiveRoute(routePath, currentPath) - active detection
+- [x] Document routing patterns
+  - [x] Create dev-notes/ui-routing.md
+  - [x] Explain route registry structure
+  - [x] Document capability checks
+  - [x] Show examples of adding new routes
+  - [x] Include migration guide from old system
+  - [x] Troubleshooting section
 
 **Success Criteria:**
 - ✅ Dashboard renders without errors
-- ☐ Sidebar dynamically rendered from route registry
-- ☐ Routes properly filtered by user capabilities
-- ☐ Easy to add new routes with capability requirements
+- ✅ Sidebar dynamically rendered from route registry
+- ✅ Routes properly filtered by user capabilities
+- ✅ Easy to add new routes with capability requirements
 
 **Dependencies:** Milestone 6 (Web UI Foundation)
+
+**Deliverables:**
+- `src/config/routes.js` - Route registry with 10 routes defined
+- `src/utils/uiHelpers.js` - 6 helper functions for route management
+- `src/views/partials/sidebar.ejs` - Dynamic sidebar using route registry
+- `dev-notes/ui-routing.md` - Comprehensive routing documentation
+
+**Notes:**
+- Fixed critical bugs in dashboard: getPool() usage and websites table schema
+- Route registry provides single source of truth for navigation
+- All routes automatically filtered by user capabilities
+- Documentation includes examples for adding new routes
+- System is extensible and maintainable
 
 ---
 

@@ -5,6 +5,8 @@
 
 const authorizationService = require('../services/authorizationService');
 const config = require('../config');
+const { getPool } = require('../config/database');
+const { getNavigationMenu } = require('../utils/uiHelpers');
 
 async function uiRoutes(fastify, _options) {
   /**
@@ -70,16 +72,14 @@ async function uiRoutes(fastify, _options) {
       }
     },
     async (request, reply) => {
-      const { pool } = fastify;
+      const pool = getPool();
 
       try {
         // Query stats from existing tables only
         const [logCountRows] = await pool.query('SELECT COUNT(*) as count FROM log_records');
         const logCount = logCountRows[0].count;
 
-        const [websiteCountRows] = await pool.query(
-          'SELECT COUNT(*) as count FROM websites WHERE is_active = 1'
-        );
+        const [websiteCountRows] = await pool.query('SELECT COUNT(*) as count FROM websites');
         const websiteCount = websiteCountRows[0].count;
 
         const [hostCountRows] = await pool.query('SELECT COUNT(*) as count FROM hosts');
@@ -102,8 +102,12 @@ async function uiRoutes(fastify, _options) {
         LIMIT 10
       `);
 
+        // Get navigation menu for user
+        const navigationMenu = getNavigationMenu(request.user);
+
         return reply.renderView('dashboard', {
           user: request.user,
+          navigationMenu,
           stats: {
             logCount,
             websiteCount,
@@ -118,7 +122,9 @@ async function uiRoutes(fastify, _options) {
           }
         });
       } catch (error) {
-        fastify.log.error('Dashboard error:', error);
+        fastify.log.error('Dashboard error:', error.message);
+        fastify.log.error('Stack trace:', error.stack);
+        console.log(error);
         return reply.code(500).send('An error occurred loading the dashboard');
       }
     }

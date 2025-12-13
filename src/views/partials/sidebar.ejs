@@ -1,83 +1,54 @@
 <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
   <div class="position-sticky pt-3 sidebar-sticky">
     <ul class="nav flex-column">
-      <li class="nav-item">
-        <a class="nav-link <%= currentPath === '/dashboard' ? 'active' : '' %>" href="/dashboard">
-          <i class="bi bi-house-door"></i> Dashboard
-        </a>
-      </li>
-      
-      <% if (user && user.capabilities) { %>
-        <% // Helper function to check if user has capability %>
-        <% const hasCapability = (cap) => user.is_superuser || (user.capabilities && user.capabilities.includes(cap)); %>
-        
-        <% if (hasCapability('logs:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/logs' ? 'active' : '' %>" href="/logs">
-            <i class="bi bi-file-text"></i> Logs
-          </a>
-        </li>
+      <% if (navigationMenu) { %>
+        <%# Main navigation (routes without section) %>
+        <% if (navigationMenu.main && navigationMenu.main.length > 0) { %>
+          <% navigationMenu.main.forEach(route => { %>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath === route.path || currentPath.startsWith(route.path + '/') ? 'active' : '' %>" href="<%= route.path %>">
+                <i class="bi <%= route.icon %>"></i> <%= route.label %>
+              </a>
+            </li>
+          <% }); %>
         <% } %>
-        
-        <% if (hasCapability('websites:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/websites' ? 'active' : '' %>" href="/websites">
-            <i class="bi bi-globe"></i> Websites
-          </a>
-        </li>
+
+        <%# Security section %>
+        <% if (navigationMenu.Security && navigationMenu.Security.length > 0) { %>
+          <li class="nav-item">
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+              <span>Security</span>
+            </h6>
+          </li>
+          <% navigationMenu.Security.forEach(route => { %>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath === route.path || currentPath.startsWith(route.path + '/') ? 'active' : '' %>" href="<%= route.path %>">
+                <i class="bi <%= route.icon %>"></i> <%= route.label %>
+              </a>
+            </li>
+          <% }); %>
         <% } %>
-        
-        <% if (hasCapability('hosts:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/hosts' ? 'active' : '' %>" href="/hosts">
-            <i class="bi bi-hdd-network"></i> Hosts
-          </a>
-        </li>
+
+        <%# Administration section %>
+        <% if (navigationMenu.Administration && navigationMenu.Administration.length > 0) { %>
+          <li class="nav-item">
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+              <span>Administration</span>
+            </h6>
+          </li>
+          <% navigationMenu.Administration.forEach(route => { %>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath === route.path || currentPath.startsWith(route.path + '/') ? 'active' : '' %>" href="<%= route.path %>">
+                <i class="bi <%= route.icon %>"></i> <%= route.label %>
+              </a>
+            </li>
+          <% }); %>
         <% } %>
-        
-        <% if (hasCapability('security-events:read') || hasCapability('security-rules:read')) { %>
-        <li class="nav-item">
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-            <span>Security</span>
-          </h6>
-        </li>
-        <% if (hasCapability('security-rules:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/security/rules' ? 'active' : '' %>" href="/security/rules">
-            <i class="bi bi-shield-check"></i> Security Rules
-          </a>
-        </li>
-        <% } %>
-        <% if (hasCapability('security-events:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/security/events' ? 'active' : '' %>" href="/security/events">
-            <i class="bi bi-exclamation-triangle"></i> Security Events
-          </a>
-        </li>
-        <% } %>
-        <% } %>
-        
-        <% if (hasCapability('users:read') || hasCapability('roles:read') || hasCapability('settings:read')) { %>
-        <li class="nav-item">
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-            <span>Administration</span>
-          </h6>
-        </li>
-        <% if (hasCapability('users:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/users' ? 'active' : '' %>" href="/users">
-            <i class="bi bi-people"></i> Users
-          </a>
-        </li>
-        <% } %>
-        <% if (hasCapability('roles:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/roles' ? 'active' : '' %>" href="/roles">
-            <i class="bi bi-shield-lock"></i> Roles
-          </a>
-        </li>
-        <% } %>
-        <% if (hasCapability('audit-log:read')) { %>
+      <% } %>
+    </ul>
+  </div>
+</nav>
+
         <li class="nav-item">
           <a class="nav-link <%= currentPath === '/audit' ? 'active' : '' %>" href="/audit">
             <i class="bi bi-clock-history"></i> Audit Log
