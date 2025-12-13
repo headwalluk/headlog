@@ -1,0 +1,349 @@
+<%- include('../partials/head', { title: 'Host: ' + host.hostname }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/hosts' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <div>
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="/hosts">Hosts</a></li>
+                <li class="breadcrumb-item active"><%= host.hostname %></li>
+              </ol>
+            </nav>
+            <h1 class="h2">
+              <i class="bi bi-hdd-stack text-primary"></i> <%= host.hostname %>
+            </h1>
+          </div>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <% if (canEdit) { %>
+            <a href="/hosts/<%= host.id %>/edit" class="btn btn-sm btn-secondary me-2">
+              <i class="bi bi-pencil"></i> Edit
+            </a>
+            <% } %>
+            <% if (canDelete) { %>
+            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="row">
+    <!-- Left Column -->
+    <div class="col-md-6 mb-4">
+      <!-- Host Information Card -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Host Information</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr>
+                <th style="width: 40%;">Hostname:</th>
+                <td><code><%= host.hostname %></code></td>
+              </tr>
+              <tr>
+                <th>Host ID:</th>
+                <td><code>#<%= host.id %></code></td>
+              </tr>
+              <tr>
+                <th>First Seen:</th>
+                <td><%= new Date(host.first_seen_at).toLocaleString() %></td>
+              </tr>
+              <tr>
+                <th>Last Seen:</th>
+                <td><%= new Date(host.last_seen_at).toLocaleString() %></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Activity Statistics Card -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Activity Statistics</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-6 mb-3">
+              <div class="border rounded p-3">
+                <h3 class="mb-0"><%= logCount.toLocaleString() %></h3>
+                <small class="text-muted">Total Logs</small>
+              </div>
+            </div>
+            <div class="col-6 mb-3">
+              <div class="border rounded p-3">
+                <h3 class="mb-0"><%= associatedWebsites.length %></h3>
+                <small class="text-muted">Websites</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-md-6 mb-4">
+      <!-- Log Type Breakdown (Last 7 Days) -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Log Type Breakdown (Last 7 Days)</h5>
+        </div>
+        <div class="card-body">
+          <% if (logTypeStats.total === 0) { %>
+          <p class="text-muted mb-0">No logs in the last 7 days.</p>
+          <% } else { %>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr>
+                <th>Total Logs:</th>
+                <td class="text-end">
+                  <strong><%= logTypeStats.total.toLocaleString() %></strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="ps-4">
+                  <span class="badge bg-success">Access</span>
+                </td>
+                <td class="text-end">
+                  <%= logTypeStats.access.toLocaleString() %>
+                  <span class="text-muted">(<%= ((logTypeStats.access / logTypeStats.total) * 100).toFixed(1) %>%)</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="ps-4">
+                  <span class="badge bg-danger">Error</span>
+                </td>
+                <td class="text-end">
+                  <%= logTypeStats.error.toLocaleString() %>
+                  <span class="text-muted">(<%= ((logTypeStats.error / logTypeStats.total) * 100).toFixed(1) %>%)</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Associated Websites -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Associated Websites</h5>
+        </div>
+        <% if (associatedWebsites.length === 0) { %>
+        <div class="card-body">
+          <p class="text-muted mb-0">No websites have logs from this host.</p>
+        </div>
+        <% } else { %>
+        <div class="list-group list-group-flush">
+          <% associatedWebsites.forEach(website => { %>
+          <a href="/websites/<%= website.id %>" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <% if (website.is_ssl) { %>
+                <i class="bi bi-lock-fill text-success me-1"></i>
+                <% } else { %>
+                <i class="bi bi-unlock text-warning me-1"></i>
+                <% } %>
+                <strong><%= website.domain %></strong>
+                <% if (website.is_dev) { %>
+                <span class="badge bg-warning text-dark ms-2">DEV</span>
+                <% } %>
+              </div>
+              <i class="bi bi-chevron-right text-muted"></i>
+            </div>
+          </a>
+          <% }); %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Activity (Last 7 Days) -->
+  <% if (dailyStats.length > 0) { %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Daily Activity (Last 7 Days)</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th class="text-end">Total</th>
+            <th class="text-end">Access</th>
+            <th class="text-end">Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% dailyStats.forEach(day => { %>
+          <tr>
+            <td><%= new Date(day.date).toLocaleDateString() %></td>
+            <td class="text-end"><strong><%= day.total.toLocaleString() %></strong></td>
+            <td class="text-end">
+              <span class="badge bg-success"><%= day.access.toLocaleString() %></span>
+            </td>
+            <td class="text-end">
+              <span class="badge bg-danger"><%= day.error.toLocaleString() %></span>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+        <tfoot class="table-light">
+          <tr>
+            <th>Total:</th>
+            <th class="text-end">
+              <%= dailyStats.reduce((sum, day) => sum + day.total, 0).toLocaleString() %>
+            </th>
+            <th class="text-end">
+              <%= dailyStats.reduce((sum, day) => sum + day.access, 0).toLocaleString() %>
+            </th>
+            <th class="text-end">
+              <%= dailyStats.reduce((sum, day) => sum + day.error, 0).toLocaleString() %>
+            </th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Recent Logs -->
+  <% if (recentLogs.length > 0) { %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Recent Logs</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Type</th>
+            <th>Code</th>
+            <th>Remote IP</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% recentLogs.forEach(log => { %>
+          <tr>
+            <td>
+              <% if (log.log_type === 'access') { %>
+              <span class="badge bg-success">Access</span>
+              <% } else { %>
+              <span class="badge bg-danger">Error</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (log.code_id) { 
+                const code = parseInt(log.code_id);
+                let badgeClass = 'secondary';
+                if (code >= 200 && code < 300) badgeClass = 'success';
+                else if (code >= 300 && code < 400) badgeClass = 'info';
+                else if (code >= 400 && code < 500) badgeClass = 'warning';
+                else if (code >= 500) badgeClass = 'danger';
+              %>
+              <span class="badge bg-<%= badgeClass %>"><%= log.code_id %></span>
+              <% } else { %>
+              <span class="text-muted">-</span>
+              <% } %>
+            </td>
+            <td><code><%= log.remote || '-' %></code></td>
+            <td><small><%= new Date(log.timestamp).toLocaleString() %></small></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } %>
+
+<!-- Delete Confirmation Modal -->
+<% if (canDelete) { %>
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete Host</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the host <strong><%= host.hostname %></strong>?</p>
+        <% if (logCount > 0) { %>
+        <div class="alert alert-warning mb-0">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          This host has <%= logCount.toLocaleString() %> associated log records and cannot be deleted.
+        </div>
+        <% } else { %>
+        <p class="text-muted mb-0">This action cannot be undone.</p>
+        <% } %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <% if (logCount === 0) { %>
+        <form method="POST" action="/hosts/<%= host.id %>/delete" style="display: inline;">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- Toast Notifications -->
+<% if (success) { %>
+<div class="toast-container position-fixed bottom-0 start-0 p-3">
+  <div class="toast show" role="alert">
+    <div class="toast-header bg-success text-white">
+      <i class="bi bi-check-circle me-2"></i>
+      <strong class="me-auto">Success</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <%= success %>
+    </div>
+  </div>
+</div>
+<script>
+  setTimeout(() => {
+    document.querySelector('.toast').classList.remove('show');
+  }, 5000);
+</script>
+<% } %>
+
+<% if (error) { %>
+<div class="toast-container position-fixed bottom-0 start-0 p-3">
+  <div class="toast show" role="alert">
+    <div class="toast-header bg-danger text-white">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      <strong class="me-auto">Error</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <%= error %>
+    </div>
+  </div>
+</div>
+<script>
+  setTimeout(() => {
+    document.querySelector('.toast').classList.remove('show');
+  }, 5000);
+</script>
+<% } %>
+
+      </main>
+    </div>
+  </div>
+</body>
+<%- include('../partials/footer') %>

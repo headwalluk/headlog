@@ -1,0 +1,274 @@
+<%- include('../partials/head', { title: targetWebsite ? 'Edit Website' : 'Create Website' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/websites' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">
+            <a href="<%= targetWebsite ? '/websites/' + targetWebsite.id : '/websites' %>" class="text-decoration-none text-muted me-2">
+              <i class="bi bi-arrow-left"></i>
+            </a>
+            <%= targetWebsite ? 'Edit Website: ' + targetWebsite.domain : 'Create New Website' %>
+          </h1>
+        </div>
+
+        <div class="row">
+          <!-- Form Column -->
+          <div class="col-md-8">
+            <form method="POST" action="<%= targetWebsite ? '/websites/' + targetWebsite.id + '/edit' : '/websites/new' %>" id="websiteForm">
+              <!-- Website Information -->
+              <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0"><i class="bi bi-globe"></i> Website Information</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-12 mb-3">
+                      <label for="domain" class="form-label">Domain <span class="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        id="domain" 
+                        name="domain" 
+                        value="<%= targetWebsite ? targetWebsite.domain : '' %>"
+                        required
+                        pattern="[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+                        title="Valid domain name required (e.g., example.com)"
+                        placeholder="example.com"
+                      >
+                      <small class="form-text text-muted">
+                        Domain name without protocol (e.g., example.com, subdomain.example.com)
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="is_ssl" 
+                          name="is_ssl"
+                          value="1"
+                          <%= !targetWebsite || targetWebsite.is_ssl ? 'checked' : '' %>
+                        >
+                        <label class="form-check-label" for="is_ssl">
+                          <i class="bi bi-lock-fill"></i> Uses HTTPS/SSL
+                        </label>
+                        <small class="form-text text-muted d-block">Website is served over HTTPS</small>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="is_dev" 
+                          name="is_dev"
+                          value="1"
+                          <%= targetWebsite && targetWebsite.is_dev ? 'checked' : '' %>
+                        >
+                        <label class="form-check-label" for="is_dev">
+                          <i class="bi bi-code-slash"></i> Development Environment
+                        </label>
+                        <small class="form-text text-muted d-block">Mark as development/staging site</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact Information -->
+              <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                  <h5 class="mb-0"><i class="bi bi-envelope"></i> Contact Information</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="owner_email" class="form-label">Owner Email</label>
+                      <input 
+                        type="email" 
+                        class="form-control" 
+                        id="owner_email" 
+                        name="owner_email" 
+                        value="<%= targetWebsite && targetWebsite.owner_email ? targetWebsite.owner_email : '' %>"
+                        placeholder="owner@example.com"
+                      >
+                      <small class="form-text text-muted">Primary contact for this website</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                      <label for="admin_email" class="form-label">Admin Email</label>
+                      <input 
+                        type="email" 
+                        class="form-control" 
+                        id="admin_email" 
+                        name="admin_email" 
+                        value="<%= targetWebsite && targetWebsite.admin_email ? targetWebsite.admin_email : '' %>"
+                        placeholder="admin@example.com"
+                      >
+                      <small class="form-text text-muted">Technical contact for this website</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between">
+                    <a href="/websites" class="btn btn-secondary">
+                      <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-circle"></i> <%= targetWebsite ? 'Update Website' : 'Create Website' %>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Help Sidebar -->
+          <div class="col-md-4">
+            <div class="card mb-4">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-question-circle"></i> Help</h5>
+              </div>
+              <div class="card-body">
+                <h6 class="card-title">Domain Format</h6>
+                <p class="card-text small">
+                  Enter the domain name without the protocol (http:// or https://). 
+                  Examples:
+                </p>
+                <ul class="small">
+                  <li><code>example.com</code></li>
+                  <li><code>www.example.com</code></li>
+                  <li><code>blog.example.com</code></li>
+                </ul>
+
+                <hr>
+
+                <h6 class="card-title">HTTPS/SSL</h6>
+                <p class="card-text small">
+                  Check this box if your website is served over HTTPS (recommended for production sites).
+                </p>
+
+                <hr>
+
+                <h6 class="card-title">Development Environment</h6>
+                <p class="card-text small">
+                  Mark development, staging, or test sites to distinguish them from production websites.
+                </p>
+
+                <hr>
+
+                <h6 class="card-title">Contact Emails</h6>
+                <p class="card-text small">
+                  Optional fields for documentation purposes. These emails are not used by the system 
+                  but help identify the responsible parties for each website.
+                </p>
+
+                <% if (!targetWebsite) { %>
+                  <hr>
+
+                  <h6 class="card-title">Automatic Creation</h6>
+                  <p class="card-text small">
+                    <i class="bi bi-lightbulb"></i> Note: Websites are automatically created when 
+                    logs are received. You only need to manually create websites if you want to 
+                    pre-configure them with contact information.
+                  </p>
+                <% } %>
+              </div>
+            </div>
+
+            <% if (targetWebsite) { %>
+              <div class="card">
+                <div class="card-header bg-warning">
+                  <h6 class="mb-0"><i class="bi bi-info-circle"></i> Website Statistics</h6>
+                </div>
+                <div class="card-body">
+                  <dl class="row mb-0 small">
+                    <dt class="col-sm-6">Website ID</dt>
+                    <dd class="col-sm-6"><code><%= targetWebsite.id %></code></dd>
+
+                    <dt class="col-sm-6">Created</dt>
+                    <dd class="col-sm-6"><%= new Date(targetWebsite.created_at).toLocaleDateString() %></dd>
+
+                    <dt class="col-sm-6">Last Updated</dt>
+                    <dd class="col-sm-6"><%= new Date(targetWebsite.updated_at).toLocaleDateString() %></dd>
+
+                    <% if (targetWebsite.last_activity_at) { %>
+                      <dt class="col-sm-6">Last Activity</dt>
+                      <dd class="col-sm-6"><%= new Date(targetWebsite.last_activity_at).toLocaleDateString() %></dd>
+                    <% } %>
+                  </dl>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="position-fixed bottom-0 start-0 p-3" style="z-index: 11">
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-danger text-white">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong class="me-auto">Error</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= error %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    // Client-side validation
+    document.getElementById('websiteForm').addEventListener('submit', function(e) {
+      var domain = document.getElementById('domain').value.trim();
+      
+      // Check for protocol in domain
+      if (domain.match(/^https?:\/\//i)) {
+        e.preventDefault();
+        document.getElementById('domain').setCustomValidity('Domain should not include http:// or https://');
+        document.getElementById('domain').reportValidity();
+        return false;
+      }
+      
+      document.getElementById('domain').setCustomValidity('');
+      return true;
+    });
+
+    // Clear validation on input
+    document.getElementById('domain').addEventListener('input', function() {
+      this.setCustomValidity('');
+    });
+
+    // Auto-show toasts
+    document.addEventListener('DOMContentLoaded', function() {
+      var toasts = document.querySelectorAll('.toast');
+      toasts.forEach(function(toast) {
+        var bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+        bsToast.show();
+      });
+    });
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

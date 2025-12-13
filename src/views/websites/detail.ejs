@@ -1,0 +1,402 @@
+<%- include('../partials/head', { title: 'Website Details' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/websites' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">
+            <a href="/websites" class="text-decoration-none text-muted me-2">
+              <i class="bi bi-arrow-left"></i>
+            </a>
+            Website: <%= website.domain %>
+          </h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+              <% if (canEdit) { %>
+                <a href="/websites/<%= website.id %>/edit" class="btn btn-sm btn-outline-secondary text-nowrap">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+              <% } %>
+              <% if (canDelete) { %>
+                <button 
+                  class="btn btn-sm btn-outline-danger text-nowrap" 
+                  onclick="confirmDelete(<%= website.id %>, '<%= website.domain %>')"
+                >
+                  <i class="bi bi-trash"></i> Delete
+                </button>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Website Information Card -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-globe"></i> Website Information</h5>
+              </div>
+              <div class="card-body">
+                <dl class="row mb-0">
+                  <dt class="col-sm-4">Domain</dt>
+                  <dd class="col-sm-8"><strong><%= website.domain %></strong></dd>
+
+                  <dt class="col-sm-4">Protocol</dt>
+                  <dd class="col-sm-8">
+                    <% if (website.is_ssl) { %>
+                      <span class="badge bg-success"><i class="bi bi-lock-fill"></i> HTTPS</span>
+                    <% } else { %>
+                      <span class="badge bg-warning"><i class="bi bi-unlock-fill"></i> HTTP</span>
+                    <% } %>
+                  </dd>
+
+                  <dt class="col-sm-4">Environment</dt>
+                  <dd class="col-sm-8">
+                    <% if (website.is_dev) { %>
+                      <span class="badge bg-info">Development</span>
+                    <% } else { %>
+                      <span class="badge bg-primary">Production</span>
+                    <% } %>
+                  </dd>
+
+                  <dt class="col-sm-4">Website ID</dt>
+                  <dd class="col-sm-8"><code><%= website.id %></code></dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information Card -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-envelope"></i> Contact Information</h5>
+              </div>
+              <div class="card-body">
+                <dl class="row mb-0">
+                  <dt class="col-sm-4">Owner Email</dt>
+                  <dd class="col-sm-8">
+                    <% if (website.owner_email) { %>
+                      <a href="mailto:<%= website.owner_email %>"><%= website.owner_email %></a>
+                    <% } else { %>
+                      <span class="text-muted">Not set</span>
+                    <% } %>
+                  </dd>
+
+                  <dt class="col-sm-4">Admin Email</dt>
+                  <dd class="col-sm-8">
+                    <% if (website.admin_email) { %>
+                      <a href="mailto:<%= website.admin_email %>"><%= website.admin_email %></a>
+                    <% } else { %>
+                      <span class="text-muted">Not set</span>
+                    <% } %>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity & Statistics Card -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Activity & Statistics</h5>
+              </div>
+              <div class="card-body">
+                <dl class="row mb-0">
+                  <dt class="col-sm-5">Total Log Records</dt>
+                  <dd class="col-sm-7">
+                    <span class="badge bg-secondary fs-6"><%= logCount.toLocaleString() %></span>
+                  </dd>
+
+                  <dt class="col-sm-5">Last Activity</dt>
+                  <dd class="col-sm-7">
+                    <% if (website.last_activity_at) { %>
+                      <%= new Date(website.last_activity_at).toLocaleString() %>
+                    <% } else { %>
+                      <span class="text-muted">Never</span>
+                    <% } %>
+                  </dd>
+
+                  <dt class="col-sm-5">Created</dt>
+                  <dd class="col-sm-7">
+                    <%= new Date(website.created_at).toLocaleString() %>
+                  </dd>
+
+                  <dt class="col-sm-5">Last Updated</dt>
+                  <dd class="col-sm-7">
+                    <%= new Date(website.updated_at).toLocaleString() %>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <!-- Log Type Breakdown (Last 7 Days) -->
+          <div class="col-md-12 mb-4">
+            <div class="card">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Log Type Breakdown (Last 7 Days)</h5>
+              </div>
+              <div class="card-body">
+                <% if (logTypeStats.total === 0) { %>
+                  <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i> No logs in the last 7 days.
+                  </p>
+                <% } else { %>
+                  <div class="row text-center mb-3">
+                    <div class="col-md-4">
+                      <div class="card bg-light">
+                        <div class="card-body">
+                          <h6 class="text-muted mb-2">Total Logs</h6>
+                          <h3 class="mb-0"><%= logTypeStats.total.toLocaleString() %></h3>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card bg-primary text-white">
+                        <div class="card-body">
+                          <h6 class="mb-2">Access Logs</h6>
+                          <h3 class="mb-0"><%= logTypeStats.access.toLocaleString() %></h3>
+                          <small><%= logTypeStats.total > 0 ? Math.round(logTypeStats.access / logTypeStats.total * 100) : 0 %>%</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card bg-danger text-white">
+                        <div class="card-body">
+                          <h6 class="mb-2">Error Logs</h6>
+                          <h3 class="mb-0"><%= logTypeStats.error.toLocaleString() %></h3>
+                          <small><%= logTypeStats.total > 0 ? Math.round(logTypeStats.error / logTypeStats.total * 100) : 0 %>%</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Activity (Last 7 Days) -->
+          <div class="col-md-12 mb-4">
+            <div class="card">
+              <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-calendar-week"></i> Daily Activity (Last 7 Days)</h5>
+              </div>
+              <div class="card-body">
+                <% if (dailyStats.length === 0) { %>
+                  <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i> No activity in the last 7 days.
+                  </p>
+                <% } else { %>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th class="text-end">Total Logs</th>
+                          <th class="text-end">Access</th>
+                          <th class="text-end">Error</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% for (var i = 0; i < dailyStats.length; i++) { %>
+                          <% var stat = dailyStats[i]; %>
+                          <tr>
+                            <td><%= new Date(stat.date).toLocaleDateString() %></td>
+                            <td class="text-end"><strong><%= (stat.total || 0).toLocaleString() %></strong></td>
+                            <td class="text-end"><span class="badge bg-primary"><%= (stat.access || 0).toLocaleString() %></span></td>
+                            <td class="text-end"><span class="badge bg-danger"><%= (stat.error || 0).toLocaleString() %></span></td>
+                          </tr>
+                        <% } %>
+                      </tbody>
+                      <tfoot>
+                        <tr class="table-light">
+                          <th>Total</th>
+                          <th class="text-end">
+                            <% 
+                              var totalLogs = 0;
+                              var totalAccess = 0;
+                              var totalError = 0;
+                              for (var i = 0; i < dailyStats.length; i++) {
+                                totalLogs += dailyStats[i].total || 0;
+                                totalAccess += dailyStats[i].access || 0;
+                                totalError += dailyStats[i].error || 0;
+                              }
+                            %>
+                            <strong><%= totalLogs.toLocaleString() %></strong>
+                          </th>
+                          <th class="text-end"><span class="badge bg-primary"><%= totalAccess.toLocaleString() %></span></th>
+                          <th class="text-end"><span class="badge bg-danger"><%= totalError.toLocaleString() %></span></th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Logs Card -->
+          <div class="col-md-12 mb-4">
+            <div class="card">
+              <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-text"></i> Recent Log Activity</h5>
+              </div>
+              <div class="card-body">
+                <% if (recentLogs.length === 0) { %>
+                  <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i> No log records yet.
+                  </p>
+                <% } else { %>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Code</th>
+                          <th>Remote IP</th>
+                          <th>Timestamp</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% for (var i = 0; i < recentLogs.length; i++) { %>
+                          <% var log = recentLogs[i]; %>
+                          <tr>
+                            <td>
+                              <% if (log.log_type === 'access') { %>
+                                <span class="badge bg-primary">Access</span>
+                              <% } else { %>
+                                <span class="badge bg-danger">Error</span>
+                              <% } %>
+                            </td>
+                            <td>
+                              <% if (log.code_id) { %>
+                                <% 
+                                  var codeInt = parseInt(log.code_id);
+                                  var badgeClass = 'secondary';
+                                  if (codeInt >= 200 && codeInt < 300) badgeClass = 'success';
+                                  else if (codeInt >= 300 && codeInt < 400) badgeClass = 'info';
+                                  else if (codeInt >= 400 && codeInt < 500) badgeClass = 'warning';
+                                  else if (codeInt >= 500) badgeClass = 'danger';
+                                %>
+                                <span class="badge bg-<%= badgeClass %>"><%= log.code_id %></span>
+                              <% } else { %>
+                                <span class="text-muted">-</span>
+                              <% } %>
+                            </td>
+                            <td>
+                              <% if (log.remote) { %>
+                                <small><%= log.remote %></small>
+                              <% } else { %>
+                                <span class="text-muted">-</span>
+                              <% } %>
+                            </td>
+                            <td><small><%= new Date(log.timestamp).toLocaleString() %></small></td>
+                          </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% if (logCount > 10) { %>
+                    <div class="text-center mt-3">
+                      <a href="/logs?website=<%= website.id %>" class="btn btn-sm btn-outline-primary">
+                        View All Logs <i class="bi bi-arrow-right"></i>
+                      </a>
+                    </div>
+                  <% } %>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="deleteModalLabel">
+            <i class="bi bi-exclamation-triangle"></i> Confirm Deletion
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete the website <strong id="deleteWebsiteDomain"></strong>?</p>
+          <p class="text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Warning:</strong> This will permanently delete <%= logCount.toLocaleString() %> associated log records.
+          </p>
+          <p>This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form id="deleteForm" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash"></i> Delete Website
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="position-fixed bottom-0 start-0 p-3" style="z-index: 11">
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+          <i class="bi bi-check-circle me-2"></i>
+          <strong class="me-auto">Success</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= success %>
+        </div>
+      </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-danger text-white">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong class="me-auto">Error</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= error %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    function confirmDelete(id, domain) {
+      document.getElementById('deleteWebsiteDomain').textContent = domain;
+      document.getElementById('deleteForm').action = '/websites/' + id + '/delete';
+      
+      var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+      modal.show();
+    }
+
+    // Auto-show toasts
+    document.addEventListener('DOMContentLoaded', function() {
+      var toasts = document.querySelectorAll('.toast');
+      toasts.forEach(function(toast) {
+        var bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+        bsToast.show();
+      });
+    });
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

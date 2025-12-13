@@ -146,6 +146,55 @@ async function logRoutes(fastify) {
       });
     }
   });
+
+  /**
+   * GET /logs/:id - Get single log record details
+   * Used by the log explorer modal
+   * Supports both session-based (browser) and API key authentication
+   */
+  fastify.get('/logs/:id', async (request, reply) => {
+    try {
+      // Check for session authentication (from browser)
+      if (request.session && request.session.user_id) {
+        const authService = require('../services/authService');
+        const authorizationService = require('../services/authorizationService');
+        
+        const user = await authService.validateSession(request.session.user_id);
+        if (!user) {
+          return reply.code(401).send({ error: 'Unauthorized: Invalid session' });
+        }
+
+        const capabilities = await authorizationService.getUserCapabilities(user.id);
+        const hasLogsRead = user.is_superuser || capabilities.some(cap => cap.name === 'logs:read');
+        
+        if (!hasLogsRead) {
+          return reply.code(403).send({ error: 'Access denied: logs:read capability required' });
+        }
+      }
+      // If no session, the API key auth from onRequest hook handles it
+
+      const LogRecord = require('../models/LogRecord');
+      const logId = parseInt(request.params.id);
+
+      if (isNaN(logId)) {
+        return reply.code(400).send({ error: 'Invalid log ID' });
+      }
+
+      const log = await LogRecord.findById(logId);
+
+      if (!log) {
+        return reply.code(404).send({ error: 'Log record not found' });
+      }
+
+      return reply.code(200).send(log);
+    } catch (error) {
+      fastify.log.error('Get log error:', error);
+      return reply.code(500).send({
+        error: 'Internal Server Error',
+        message: 'Failed to retrieve log record'
+      });
+    }
+  });
 }
 
 module.exports = logRoutes;

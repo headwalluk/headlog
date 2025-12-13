@@ -301,8 +301,20 @@ async function start() {
         return;
       }
 
-      // Require API key for /api routes
+      // For /api routes, check for session auth first (for browser requests)
+      // then fall back to API key auth
       if (request.url.startsWith('/api')) {
+        // If there's a valid session, allow the request through
+        if (request.session && request.session.user_id) {
+          const authService = require('./services/authService');
+          const user = await authService.validateSession(request.session.user_id);
+          if (user) {
+            // Valid session - let the route handler do capability checking
+            return;
+          }
+        }
+        
+        // No valid session - require API key
         await authenticate(request, reply);
       }
     });

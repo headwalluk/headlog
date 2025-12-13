@@ -1,0 +1,169 @@
+<%- include('../partials/head', { title: targetHost ? 'Edit Host' : 'Add Host' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/hosts' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <div>
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="/hosts">Hosts</a></li>
+                <% if (targetHost) { %>
+                <li class="breadcrumb-item"><a href="/hosts/<%= targetHost.id %>"><%= targetHost.hostname %></a></li>
+                <li class="breadcrumb-item active">Edit</li>
+                <% } else { %>
+                <li class="breadcrumb-item active">New Host</li>
+                <% } %>
+              </ol>
+            </nav>
+            <h1 class="h2">
+              <% if (targetHost) { %>
+              Edit Host
+              <% } else { %>
+              Add New Host
+              <% } %>
+            </h1>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Form Column -->
+          <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <form method="POST" action="<%= targetHost ? '/hosts/' + targetHost.id + '/edit' : '/hosts/new' %>" id="hostForm">
+            <!-- Hostname -->
+            <div class="mb-3">
+              <label for="hostname" class="form-label">
+                Hostname <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="hostname" 
+                name="hostname" 
+                value="<%= targetHost ? targetHost.hostname : '' %>"
+                required
+                placeholder="web-server-01"
+                pattern="[a-zA-Z0-9\-\.]+"
+                title="Hostname can only contain letters, numbers, hyphens, and periods"
+              >
+              <div class="form-text">
+                Enter the server hostname (e.g., web-server-01, app.example.com)
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+              <a href="/hosts" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i>Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i>
+                <% if (targetHost) { %>
+                Update Host
+                <% } else { %>
+                Create Host
+                <% } %>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Sidebar -->
+    <div class="col-lg-4">
+      <!-- Help Card -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-info-circle me-1"></i>Host Information</h6>
+        </div>
+        <div class="card-body">
+          <p class="small mb-2">
+            <strong>Hostname</strong> identifies the server that generated log entries. Common formats:
+          </p>
+          <ul class="small mb-0">
+            <li><code>web-server-01</code> - Simple hostname</li>
+            <li><code>app.example.com</code> - Fully qualified domain</li>
+            <li><code>prod-lb-us-east-1</code> - Infrastructure naming</li>
+          </ul>
+        </div>
+      </div>
+
+      <% if (targetHost) { %>
+      <!-- Statistics Card -->
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-bar-chart me-1"></i>Statistics</h6>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small text-muted">First Seen:</span>
+            <span class="small"><%= new Date(targetHost.first_seen_at).toLocaleDateString() %></span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted">Last Seen:</span>
+            <span class="small"><%= new Date(targetHost.last_seen_at).toLocaleDateString() %></span>
+          </div>
+        </div>
+      </div>
+      <% } %>
+          </div>
+        </div>
+
+<!-- Client-side Validation -->
+<script>
+document.getElementById('hostForm').addEventListener('submit', function(e) {
+  const hostname = document.getElementById('hostname').value.trim();
+  
+  // Check for empty hostname
+  if (!hostname) {
+    e.preventDefault();
+    alert('Hostname is required');
+    return false;
+  }
+  
+  // Check for invalid characters
+  if (!/^[a-zA-Z0-9\-\.]+$/.test(hostname)) {
+    e.preventDefault();
+    alert('Hostname can only contain letters, numbers, hyphens, and periods');
+    return false;
+  }
+  
+  return true;
+});
+</script>
+
+<!-- Error Alert -->
+<% if (error) { %>
+<div class="position-fixed bottom-0 start-0 p-3" style="z-index: 11">
+  <div class="toast show" role="alert">
+    <div class="toast-header bg-danger text-white">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      <strong class="me-auto">Error</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <%= error %>
+    </div>
+  </div>
+</div>
+<script>
+  setTimeout(() => {
+    document.querySelector('.toast').classList.remove('show');
+  }, 5000);
+</script>
+<% } %>
+
+      </main>
+    </div>
+  </div>
+</body>
+<%- include('../partials/footer') %>

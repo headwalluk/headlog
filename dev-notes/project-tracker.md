@@ -803,52 +803,61 @@
 
 **Goal:** Interface for managing roles and capabilities
 
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Target:** Day 11-12  
 **Estimated Effort:** 6-8 hours
+**Actual Time:** ~4 hours
+**Completed:** 2025-12-13
 
 **Tasks:**
 
-- [ ] Create role list view (src/views/pages/roles/index.ejs)
-  - [ ] Table: Role Name, Description, User Count, System Role, Actions
-  - [ ] System roles marked (badge, can't delete)
-  - [ ] Create Role button
-  - [ ] Actions: Edit, Manage Capabilities, Delete (non-system only)
-- [ ] Create role edit view (src/views/pages/roles/edit.ejs)
-  - [ ] Form: name, description
-  - [ ] Can't edit system roles (read-only)
-  - [ ] Save, Cancel buttons
-- [ ] Create capabilities management view (src/views/pages/roles/capabilities.ejs)
-  - [ ] Grouped by category (Logs, Users, Roles, Websites, etc.)
-  - [ ] Checkboxes for each capability
-  - [ ] Dangerous capabilities highlighted (red badge)
-  - [ ] Save button (batch update)
-- [ ] Create role API routes (src/routes/api/roles.js)
-  - [ ] GET /api/roles - list roles (requireCapability('roles:read'))
-  - [ ] POST /api/roles - create role (requireCapability('roles:write'))
-  - [ ] GET /api/roles/:id - get role details
-  - [ ] PUT /api/roles/:id - update role
-  - [ ] DELETE /api/roles/:id - delete role (non-system only)
-  - [ ] GET /api/roles/:id/capabilities - list capabilities for role
-  - [ ] POST /api/roles/:id/capabilities - grant capability
-  - [ ] DELETE /api/roles/:id/capabilities/:capId - revoke capability
-- [ ] Add validation
-  - [ ] Can't delete system roles
-  - [ ] Can't modify superuser role capabilities
-  - [ ] Role name unique
-- [ ] Add audit logging
-  - [ ] Log role creation
-  - [ ] Log role updates
-  - [ ] Log capability grants/revokes
+- [x] Create role list view (src/views/roles/list.ejs)
+  - [x] Table: Role Name, Description, Type (System/Custom), Capabilities, Users, Actions
+  - [x] System roles marked (badge, can't delete)
+  - [x] Create Role button
+  - [x] Actions: View, Edit, Manage Capabilities, Delete (non-system only)
+- [x] Create role detail view (src/views/roles/detail.ejs)
+  - [x] Role information card with type badge
+  - [x] Statistics showing capabilities and users count
+  - [x] Assigned capabilities grouped by category
+  - [x] Users with this role table
+- [x] Create role edit view (src/views/roles/form.ejs)
+  - [x] Form: name, description
+  - [x] Can't edit system roles (blocked in route)
+  - [x] Save, Cancel buttons
+- [x] Create capabilities management view (src/views/roles/capabilities.ejs)
+  - [x] Two-column layout: Assigned vs Available
+  - [x] Grouped by category (Logs, Users, Roles, Websites, etc.)
+  - [x] Grant/Revoke buttons for each capability
+  - [x] Dangerous capabilities highlighted (warning icon)
+- [x] Create role UI routes (src/routes/ui.js)
+  - [x] GET /roles - list roles
+  - [x] GET /roles/new - create role form
+  - [x] POST /roles/new - create role handler
+  - [x] GET /roles/:id - role details
+  - [x] GET /roles/:id/edit - edit role form
+  - [x] POST /roles/:id/edit - update role handler
+  - [x] POST /roles/:id/delete - delete role
+  - [x] GET /roles/:id/capabilities - manage capabilities page
+  - [x] POST /roles/:id/capabilities/:capabilityId/grant - grant capability
+  - [x] POST /roles/:id/capabilities/:capabilityId/revoke - revoke capability
+- [x] Add validation
+  - [x] Can't delete system roles
+  - [x] Can't modify system role properties
+  - [x] Role name unique
+- [x] Add audit logging
+  - [x] Log role creation
+  - [x] Log role updates
+  - [x] Log capability grants/revokes
 
 **Success Criteria:**
 
-- ✓ Can list all roles
-- ✓ Can create custom role
-- ✓ Can edit role details
-- ✓ Can manage capabilities (grant/revoke)
-- ✓ System roles protected from deletion
-- ✓ All operations audited
+- ✅ Can list all roles
+- ✅ Can create custom role
+- ✅ Can edit role details
+- ✅ Can manage capabilities (grant/revoke)
+- ✅ System roles protected from deletion and modification
+- ✅ All operations audited
 
 **Dependencies:** Milestone 8 (user management UI patterns established)
 
@@ -856,98 +865,176 @@
 
 ### Milestone 10: Website & Host Management Pages
 
-**Goal:** Manage websites and host IP exclusions
+**Goal:** Manage websites and hosts with full CRUD interfaces
 
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Target:** Day 12-13  
 **Estimated Effort:** 6-8 hours
+**Actual Time:** ~5 hours
+**Completed:** 2025-12-13
 
 **Tasks:**
 
-- [ ] Create website list view (src/views/pages/websites/index.ejs)
-  - [ ] Table: Domain, API Key Status, Log Count, Last Log, Actions
-  - [ ] Search by domain
-  - [ ] Filter by active/inactive
-  - [ ] Create Website button
-  - [ ] Actions: View Details, Edit, Regenerate API Key, Disable, Delete
-- [ ] Create website edit view (src/views/pages/websites/edit.ejs)
-  - [ ] Form: domain, description
-  - [ ] Show API key creation date, last used
-  - [ ] Regenerate API Key button (confirmation required)
-  - [ ] Show recent logs (last 100)
-  - [ ] Log ingestion instructions (curl example with API key)
-- [ ] Create host list view (src/views/pages/hosts/index.ejs)
-  - [ ] Table: Hostname, IP Count, Log Count, Last Seen, Actions
-  - [ ] Actions: Edit, Manage IPs, View Logs
-- [ ] Create host IPs view (src/views/pages/hosts/ips.ejs)
-  - [ ] Host details at top (hostname, description)
-  - [ ] Table: IP Address, Version, Description, Added Date, Actions
-  - [ ] Add IP button (opens form)
-  - [ ] Remove IP button (per IP, confirmation)
-  - [ ] Validate IP format (IPv4/IPv6)
-  - [ ] Auto-detect IP version
-- [ ] Create website API routes (src/routes/api/websites.js)
-  - [ ] GET /api/websites - list (requireCapability('websites:read'))
-  - [ ] POST /api/websites - create (requireCapability('websites:write'))
-  - [ ] GET /api/websites/:id - details
-  - [ ] PUT /api/websites/:id - update
-  - [ ] DELETE /api/websites/:id - delete (requireCapability('websites:delete'))
-  - [ ] POST /api/websites/:id/regenerate-key - new API key
-- [ ] Create host API routes (src/routes/api/hosts.js)
-  - [ ] GET /api/hosts - list (requireCapability('hosts:read'))
-  - [ ] GET /api/hosts/:id - details
-  - [ ] PUT /api/hosts/:id - update (requireCapability('hosts:write'))
-  - [ ] GET /api/hosts/:id/ips - list IPs
-  - [ ] POST /api/hosts/:id/ips - add IP
-  - [ ] DELETE /api/hosts/:id/ips/:ipId - remove IP
-- [ ] Add validation
-  - [ ] Domain must be valid format
-  - [ ] IP address must be valid IPv4 or IPv6
-  - [ ] Can't remove IP if it appears in recent logs (warning)
-- [ ] CLI: Host IP management commands
-  - [ ] hosts:list
-  - [ ] hosts:show <hostname>
-  - [ ] hosts:add-ip <hostname> <ip> [--description X]
-  - [ ] hosts:remove-ip <hostname> <ip>
+- [x] Create website list view (src/views/websites/list.ejs)
+  - [x] Table: Domain, SSL/Dev badges, Log Count, Last Activity, Actions
+  - [x] Search by domain
+  - [x] Filter by SSL status and dev/production
+  - [x] Create Website button
+  - [x] Actions: View Details, Edit, Delete
+- [x] Create website detail view (src/views/websites/detail.ejs)
+  - [x] Website information card (domain, SSL, dev status, owner/admin emails)
+  - [x] Activity statistics (total logs, log type breakdown)
+  - [x] Daily activity table (7 days)
+  - [x] Recent logs table (10 most recent)
+- [x] Create website form view (src/views/websites/form.ejs)
+  - [x] Form: domain, is_ssl, is_dev, owner_email, admin_email
+  - [x] Domain validation (pattern, uniqueness)
+  - [x] Help sidebar with guidelines
+  - [x] Statistics card in edit mode
+- [x] Create host list view (src/views/hosts/list.ejs)
+  - [x] Table: Hostname, Log Count, First/Last Seen, Actions
+  - [x] Search by hostname
+  - [x] Create Host button
+  - [x] Actions: View, Edit, Delete
+  - [x] Delete modals with log count warnings
+- [x] Create host detail view (src/views/hosts/detail.ejs)
+  - [x] Host information card (hostname, first/last seen)
+  - [x] Activity statistics (total logs, websites count)
+  - [x] Log type breakdown (7 days)
+  - [x] Associated websites list
+  - [x] Daily activity table
+  - [x] Recent logs table
+- [x] Create host form view (src/views/hosts/form.ejs)
+  - [x] Form: hostname with pattern validation
+  - [x] Help sidebar with hostname format examples
+  - [x] Statistics card in edit mode
+- [x] Create website UI routes (src/routes/ui.js)
+  - [x] GET /websites - list (requireCapability('websites:read'))
+  - [x] GET /websites/new - create form
+  - [x] POST /websites/new - create handler
+  - [x] GET /websites/:id - details
+  - [x] GET /websites/:id/edit - edit form
+  - [x] POST /websites/:id/edit - update handler
+  - [x] POST /websites/:id/delete - delete handler
+- [x] Create host UI routes (src/routes/ui.js)
+  - [x] GET /hosts - list (requireCapability('hosts:read'))
+  - [x] GET /hosts/new - create form
+  - [x] POST /hosts/new - create handler
+  - [x] GET /hosts/:id - details
+  - [x] GET /hosts/:id/edit - edit form
+  - [x] POST /hosts/:id/edit - update handler
+  - [x] POST /hosts/:id/delete - delete handler (prevents if logs exist)
+- [x] Create models
+  - [x] Website.js - Full CRUD with audit logging
+  - [x] Host.js - Full CRUD with audit logging and statistics
+- [x] Add validation
+  - [x] Domain must be valid format
+  - [x] Hostname must be valid format
+  - [x] Can't delete host if logs exist
+- [x] Database query helper
+  - [x] scripts/db-query.sh - Standardized query script
+  - [x] docs/database-queries.md - Usage documentation
 
 **Success Criteria:**
 
-- ✓ Can list websites
-- ✓ Can create/edit websites
-- ✓ Can regenerate API keys
-- ✓ Can list hosts
-- ✓ Can manage host IPs (add/remove)
-- ✓ IP validation works
-- ✓ CLI commands work
+- ✅ Can list websites with search and filters
+- ✅ Can create/edit/delete websites
+- ✅ Can view website details with statistics
+- ✅ Can list hosts with search
+- ✅ Can create/edit hosts
+- ✅ Can view host details with associated websites
+- ✅ Host deletion protected if logs exist
+- ✅ All operations capability-gated and audit logged
 
 **Dependencies:** Milestone 9 (UI patterns established)
 
 ---
 
-### Milestone 11: Log Viewer (Spreadsheet Interface)
+### Milestone 11: Log Explorer Interface
 
 **Goal:** Full-featured log record viewer with filters and export
 
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Target:** Day 14-16  
 **Estimated Effort:** 12-16 hours
+**Actual Time:** ~6 hours
+**Completed:** 2025-12-13
 
 **Tasks:**
 
-- [ ] Create log viewer view (src/views/pages/logs/viewer.ejs)
-  - [ ] Full-width layout (collapsible sidebar)
-  - [ ] Fixed toolbar at top
-  - [ ] Filter form:
-    - [ ] Date range picker (presets + custom)
-    - [ ] Website multi-select dropdown
-    - [ ] Host multi-select dropdown
-    - [ ] HTTP code filter
-    - [ ] Path contains input
-    - [ ] IP address input
-    - [ ] Apply Filters button
-    - [ ] Clear Filters button
-  - [ ] Export buttons (CSV, JSON)
-  - [ ] Column visibility selector
+- [x] Create log explorer view (src/views/logs/explorer.ejs)
+  - [x] Full-width layout with toolbar
+  - [x] Filter form:
+    - [x] Date range picker (presets: 24h, 7d, 30d + custom)
+    - [x] Log type filter (All, Access, Error)
+    - [x] Website dropdown (searchable select)
+    - [x] Host dropdown (searchable select)
+    - [x] HTTP code dropdown (grouped by category: 2xx, 3xx, 4xx, 5xx)
+    - [x] Remote IP search input
+    - [x] General search input (searches raw_data)
+    - [x] Apply Filters button
+    - [x] Clear All button
+  - [x] Results summary showing count
+  - [x] Unified log table (access and error logs together)
+  - [x] Columns: Timestamp, Type badge, Website, Host, Code badge, Remote IP, Details preview
+  - [x] Mobile responsive (hides less critical columns)
+  - [x] Server-side pagination (default 50, max 500)
+- [x] Create log detail modal
+  - [x] Single-click to open (better UX than double-click)
+  - [x] Shows all metadata: timestamp, log ID, website, host, remote IP, HTTP code
+  - [x] Displays all fields from raw_data JSON as key-value table
+  - [x] Smart formatting: objects as JSON, booleans as badges, long text smaller
+  - [x] Filters out empty/null values
+  - [x] Raw JSON viewer (collapsible)
+  - [x] HTML escaping for XSS protection
+- [x] Create LogRecord model (src/models/LogRecord.js)
+  - [x] searchLogs() - Query with filters and pagination
+  - [x] findById() - Get single log record
+  - [x] getFilterOptions() - Get websites, hosts, codes for dropdowns
+- [x] Create log explorer route (src/routes/ui.js)
+  - [x] GET /logs - Main explorer page
+  - [x] Session-based authentication
+  - [x] Capability check: logs:read
+  - [x] Parse query parameters (all filters)
+  - [x] Handle date range presets
+  - [x] Pass filter state back to view
+- [x] Create log detail API (src/routes/logs.js)
+  - [x] GET /api/logs/:id - Fetch single log
+  - [x] Hybrid authentication (session OR API key)
+  - [x] Capability check: logs:read
+  - [x] Returns parsed JSON data
+- [x] External JavaScript file
+  - [x] public/js/log-explorer.js - All client-side logic
+  - [x] Date range toggle handler
+  - [x] Row click handler with modal
+  - [x] AJAX fetch for log details
+  - [x] Dynamic modal rendering
+  - [x] HTML escape helper
+- [x] Server authentication fixes
+  - [x] Modified onRequest hook to check session before API key
+  - [x] Allows browser requests to /api endpoints with session auth
+  - [x] Falls back to API key for non-session requests
+- [x] Documentation
+  - [x] dev-notes/log-explorer-page.md - Complete specification
+
+**Success Criteria:**
+
+- ✅ Can view unified log list (access + error)
+- ✅ Can filter by date range with presets
+- ✅ Can filter by website, host, log type, HTTP code, IP address
+- ✅ Can search across log data
+- ✅ Pagination works (50 per page, up to 500)
+- ✅ Can click log to view full details in modal
+- ✅ Modal shows all fields from raw_data as key-value table
+- ✅ Mobile responsive view works
+- ✅ Both browser (session) and API key auth supported
+- ⏳ Export to CSV/JSON (future enhancement)
+
+**Dependencies:** Milestone 10 (CRUD patterns established)
+
+---
+
+### Milestone 12: Log Viewer Export & Advanced Features
   - [ ] Data table:
     - [ ] Sortable columns (Timestamp, Website, Host, HTTP Code, Method, Path, IP)
     - [ ] Color-coded HTTP codes

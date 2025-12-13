@@ -19,23 +19,6 @@
           </div>
         </div>
 
-        <!-- Welcome Toast -->
-        <div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1050;">
-          <div id="welcomeToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-info text-white">
-              <i class="bi bi-info-circle me-2"></i>
-              <strong class="me-auto">Welcome</strong>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-              Welcome back, <strong><%= user.username %></strong>!
-              <% if (user.is_superuser) { %>
-                <span class="badge bg-danger ms-2">Superuser</span>
-              <% } %>
-            </div>
-          </div>
-        </div>
-
         <!-- Quick Stats -->
         <div class="row mb-4">
           <div class="col-md-4 mb-3">
@@ -140,19 +123,5 @@
       </main>
     </div>
   </div>
-
-  <script>
-    // Show welcome toast on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      const welcomeToast = document.getElementById('welcomeToast');
-      if (welcomeToast) {
-        const toast = new bootstrap.Toast(welcomeToast, {
-          autohide: true,
-          delay: 5000
-        });
-        toast.show();
-      }
-    });
-  </script>
 </body>
 </html>

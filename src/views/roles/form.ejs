@@ -1,0 +1,230 @@
+<%- include('../partials/head', { title: targetRole ? 'Edit Role' : 'Create Role' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/roles' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <div>
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="/roles">Roles</a></li>
+                <% if (targetRole) { %>
+                <li class="breadcrumb-item"><a href="/roles/<%= targetRole.id %>"><%= targetRole.name %></a></li>
+                <li class="breadcrumb-item active">Edit</li>
+                <% } else { %>
+                <li class="breadcrumb-item active">New Role</li>
+                <% } %>
+              </ol>
+            </nav>
+            <h1 class="h2">
+              <% if (targetRole) { %>
+              Edit Role
+              <% } else { %>
+              Create New Role
+              <% } %>
+            </h1>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Form Column -->
+          <div class="col-lg-8">
+            <div class="card">
+              <div class="card-body">
+                <form method="POST" action="<%= targetRole ? '/roles/' + targetRole.id + '/edit' : '/roles/new' %>" id="roleForm">
+                  <!-- Role Name -->
+                  <div class="mb-3">
+                    <label for="name" class="form-label">
+                      Role Name <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="name" 
+                      name="name" 
+                      value="<%= targetRole ? targetRole.name : '' %>"
+                      required
+                      placeholder="content-editor"
+                      pattern="[a-z0-9\-]+"
+                      title="Role name must be lowercase letters, numbers, and hyphens only"
+                    >
+                    <div class="form-text">
+                      Use lowercase letters, numbers, and hyphens. No spaces.
+                    </div>
+                  </div>
+
+                  <!-- Description -->
+                  <div class="mb-3">
+                    <label for="description" class="form-label">
+                      Description <span class="text-danger">*</span>
+                    </label>
+                    <textarea 
+                      class="form-control" 
+                      id="description" 
+                      name="description" 
+                      rows="3"
+                      required
+                      placeholder="Can manage website content and media uploads"
+                    ><%= targetRole ? targetRole.description : '' %></textarea>
+                    <div class="form-text">
+                      Provide a clear description of what this role allows users to do.
+                    </div>
+                  </div>
+
+                  <% if (targetRole && targetRole.capabilities_count > 0) { %>
+                  <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    This role has <strong><%= targetRole.capabilities_count %></strong> capabilit<%= targetRole.capabilities_count === 1 ? 'y' : 'ies' %> assigned. 
+                    You can manage capabilities after saving.
+                  </div>
+                  <% } %>
+
+                  <!-- Form Actions -->
+                  <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a href="<%= targetRole ? '/roles/' + targetRole.id : '/roles' %>" class="btn btn-outline-secondary">
+                      <i class="bi bi-x-circle me-1"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-circle me-1"></i>
+                      <% if (targetRole) { %>
+                        Update Role
+                      <% } else { %>
+                        Create Role
+                      <% } %>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Help Sidebar -->
+          <div class="col-lg-4">
+            <!-- Help Card -->
+            <div class="card mb-3">
+              <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-1"></i>Role Guidelines</h6>
+              </div>
+              <div class="card-body">
+                <p class="small mb-2">
+                  <strong>Role Names</strong> should be descriptive and follow kebab-case:
+                </p>
+                <ul class="small mb-3">
+                  <li><code>content-editor</code></li>
+                  <li><code>system-admin</code></li>
+                  <li><code>log-viewer</code></li>
+                </ul>
+                
+                <p class="small mb-2">
+                  <strong>Descriptions</strong> should clearly explain what permissions this role grants:
+                </p>
+                <ul class="small mb-0">
+                  <li>Be specific and concise</li>
+                  <li>Mention key capabilities</li>
+                  <li>Use action-oriented language</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightbulb me-1"></i>Next Steps</h6>
+              </div>
+              <div class="card-body">
+                <p class="small mb-2">After creating the role, you can:</p>
+                <ul class="small mb-0">
+                  <li>Assign capabilities to define permissions</li>
+                  <li>Assign the role to users</li>
+                  <li>View users with this role</li>
+                </ul>
+              </div>
+            </div>
+
+            <% if (targetRole) { %>
+            <!-- Statistics Card -->
+            <div class="card mt-3">
+              <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-bar-chart me-1"></i>Statistics</h6>
+              </div>
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small text-muted">Capabilities:</span>
+                  <span class="small"><%= targetRole.capabilities_count || 0 %></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small text-muted">Users:</span>
+                  <span class="small"><%= targetRole.user_count || 0 %></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="small text-muted">Created:</span>
+                  <span class="small"><%= new Date(targetRole.created_at).toLocaleDateString() %></span>
+                </div>
+              </div>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+<!-- Client-side Validation -->
+<script>
+document.getElementById('roleForm').addEventListener('submit', function(e) {
+  const name = document.getElementById('name').value.trim();
+  const description = document.getElementById('description').value.trim();
+  
+  // Check for empty fields
+  if (!name || !description) {
+    e.preventDefault();
+    alert('All fields are required');
+    return false;
+  }
+  
+  // Check name format
+  if (!/^[a-z0-9\-]+$/.test(name)) {
+    e.preventDefault();
+    alert('Role name must be lowercase letters, numbers, and hyphens only');
+    return false;
+  }
+  
+  // Check for spaces in name
+  if (name.includes(' ')) {
+    e.preventDefault();
+    alert('Role name cannot contain spaces. Use hyphens instead.');
+    return false;
+  }
+  
+  return true;
+});
+</script>
+
+<!-- Error Alert -->
+<% if (error) { %>
+<div class="position-fixed bottom-0 start-0 p-3" style="z-index: 11">
+  <div class="toast show" role="alert">
+    <div class="toast-header bg-danger text-white">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      <strong class="me-auto">Error</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <%= error %>
+    </div>
+  </div>
+</div>
+<script>
+  setTimeout(() => {
+    document.querySelector('.toast').classList.remove('show');
+  }, 5000);
+</script>
+<% } %>
+
+      </main>
+    </div>
+  </div>
+</body>
+<%- include('../partials/footer') %>

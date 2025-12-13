@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2025-12-13
+
+### Added
+
+- **Website Management UI**
+  - Website list page with search, SSL/dev filters, and pagination
+  - Website detail page with statistics, log breakdown, and recent activity
+  - Create/edit website forms with validation
+  - Delete website with confirmation and log record warnings
+  - All operations capability-gated (`websites:read`, `websites:write`, `websites:delete`)
+
+- **Host Management UI**
+  - Host list page with search and pagination
+  - Host detail page with log statistics, activity breakdown, and associated websites
+  - Create/edit host forms with hostname validation
+  - Delete host protection (prevents deletion if logs exist)
+  - All operations capability-gated (`hosts:read`, `hosts:write`, `hosts:delete`)
+
+- **Role Management UI**
+  - Role list page showing system and custom roles
+  - Role detail page with assigned capabilities and user list
+  - Create/edit role forms (system roles protected from modification)
+  - Capability management page with grant/revoke interface
+  - Capabilities grouped by category with dangerous capability warnings
+  - All operations capability-gated (`roles:read`, `roles:write`, `roles:delete`, `roles:manage-capabilities`)
+
+- **Log Explorer**
+  - Unified log viewer for both access and error logs
+  - Comprehensive filtering: date range, log type, website, host, HTTP code, IP address, search
+  - Date range presets (24h, 7d, 30d) with custom range support
+  - Server-side pagination (50 records per page, up to 500)
+  - Single-click log detail modal with key-value display
+  - Smart formatting for JSON, booleans, and long text
+  - Raw JSON viewer (collapsed)
+  - Mobile-responsive table with column hiding
+  - Supports both session-based (browser) and API key authentication
+
+- **Database Query Helper**
+  - `scripts/db-query.sh` - Standardized script for ad-hoc database queries
+  - Works from any directory using `$BASH_SOURCE` and `realpath`
+  - Validates environment variables before execution
+  - Documentation in `docs/database-queries.md`
+
+- **Models**
+  - `Host.js` - Complete CRUD with audit logging and statistics methods
+  - `LogRecord.js` - Search/filter logs with pagination and detail retrieval
+
+### Changed
+
+- **Dashboard**: Removed "Welcome back" toast notification (low value)
+- **API Authentication**: `/api/logs/:id` now supports both session-based (browser) and API key authentication
+- **Server Hook**: Modified `onRequest` hook to check session auth before requiring API keys for `/api` routes
+
+### Fixed
+
+- Template structure issues in hosts views (duplicate headers, missing partials)
+- Audit service references (changed from non-existent `auditLogger` to `auditService`)
+- EJS template escaping issues by moving inline JavaScript to external files
+- Static file path for log explorer JavaScript
+
+### Documentation
+
+- Added `dev-notes/log-explorer-page.md` - Comprehensive Log Explorer specification
+- Added `docs/database-queries.md` - Database query helper usage guide
+- Updated UI style guides with examples from new CRUD implementations
+
 ## [1.7.0] - 2025-12-13
 
 ### Added

@@ -1,0 +1,203 @@
+<%- include('../partials/head', { title: 'Manage Capabilities: ' + role.name }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/roles' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <div>
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="/roles">Roles</a></li>
+                <li class="breadcrumb-item"><a href="/roles/<%= role.id %>"><%= role.name %></a></li>
+                <li class="breadcrumb-item active">Manage Capabilities</li>
+              </ol>
+            </nav>
+            <h1 class="h2">
+              Manage Capabilities: <%= role.name %>
+            </h1>
+          </div>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="/roles/<%= role.id %>" class="btn btn-sm btn-secondary">
+              <i class="bi bi-arrow-left"></i> Back to Role
+            </a>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Assigned Capabilities Column -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                  <i class="bi bi-check-circle me-1"></i>
+                  Assigned Capabilities (<%= assignedCapabilities.length %>)
+                </h5>
+              </div>
+              <% if (assignedCapabilities.length === 0) { %>
+              <div class="card-body">
+                <p class="text-muted mb-0">No capabilities assigned yet. Assign capabilities from the available list.</p>
+              </div>
+              <% } else { %>
+              <div class="list-group list-group-flush">
+                <%
+                // Group by category
+                const assignedGrouped = {};
+                assignedCapabilities.forEach(cap => {
+                  if (!assignedGrouped[cap.category]) {
+                    assignedGrouped[cap.category] = [];
+                  }
+                  assignedGrouped[cap.category].push(cap);
+                });
+
+                Object.keys(assignedGrouped).sort().forEach(category => {
+                %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <h6 class="text-uppercase text-muted mb-0" style="font-size: 0.75rem;">
+                        <%= category %>
+                      </h6>
+                    </div>
+                    <% assignedGrouped[category].forEach(cap => { %>
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="flex-grow-1">
+                          <strong class="<%= cap.is_dangerous ? 'text-danger' : '' %>">
+                            <%= cap.name %>
+                            <% if (cap.is_dangerous) { %>
+                              <i class="bi bi-exclamation-triangle text-danger ms-1" title="Dangerous capability"></i>
+                            <% } %>
+                          </strong>
+                          <br>
+                          <small class="text-muted"><%= cap.description %></small>
+                        </div>
+                        <form method="POST" action="/roles/<%= role.id %>/capabilities/<%= cap.id %>/revoke" style="display: inline;">
+                          <button type="submit" class="btn btn-sm btn-outline-danger" title="Revoke">
+                            <i class="bi bi-x-circle"></i> Revoke
+                          </button>
+                        </form>
+                      </div>
+                    <% }); %>
+                  </div>
+                <% }); %>
+              </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Available Capabilities Column -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                  <i class="bi bi-plus-circle me-1"></i>
+                  Available Capabilities (<%= availableCapabilities.length %>)
+                </h5>
+              </div>
+              <% if (availableCapabilities.length === 0) { %>
+              <div class="card-body">
+                <p class="text-muted mb-0">All capabilities have been assigned to this role.</p>
+              </div>
+              <% } else { %>
+              <div class="list-group list-group-flush">
+                <%
+                // Group by category
+                const availableGrouped = {};
+                availableCapabilities.forEach(cap => {
+                  if (!availableGrouped[cap.category]) {
+                    availableGrouped[cap.category] = [];
+                  }
+                  availableGrouped[cap.category].push(cap);
+                });
+
+                Object.keys(availableGrouped).sort().forEach(category => {
+                %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <h6 class="text-uppercase text-muted mb-0" style="font-size: 0.75rem;">
+                        <%= category %>
+                      </h6>
+                    </div>
+                    <% availableGrouped[category].forEach(cap => { %>
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="flex-grow-1">
+                          <strong class="<%= cap.is_dangerous ? 'text-danger' : '' %>">
+                            <%= cap.name %>
+                            <% if (cap.is_dangerous) { %>
+                              <i class="bi bi-exclamation-triangle text-danger ms-1" title="Dangerous capability"></i>
+                            <% } %>
+                          </strong>
+                          <br>
+                          <small class="text-muted"><%= cap.description %></small>
+                        </div>
+                        <form method="POST" action="/roles/<%= role.id %>/capabilities/<%= cap.id %>/grant" style="display: inline;">
+                          <button type="submit" class="btn btn-sm btn-outline-success" title="Grant">
+                            <i class="bi bi-plus-circle"></i> Grant
+                          </button>
+                        </form>
+                      </div>
+                    <% }); %>
+                  </div>
+                <% }); %>
+              </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Info -->
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Note:</strong> Capabilities marked with <i class="bi bi-exclamation-triangle text-danger"></i> are considered dangerous and should be granted carefully.
+        </div>
+
+<!-- Toast Notifications -->
+<% if (success) { %>
+<div class="toast-container position-fixed bottom-0 start-0 p-3">
+  <div class="toast show" role="alert">
+    <div class="toast-header bg-success text-white">
+      <i class="bi bi-check-circle me-2"></i>
+      <strong class="me-auto">Success</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <%= success %>
+    </div>
+  </div>
+</div>
+<script>
+  setTimeout(() => {
+    document.querySelector('.toast').classList.remove('show');
+  }, 5000);
+</script>
+<% } %>
+
+<% if (error) { %>
+<div class="toast-container position-fixed bottom-0 start-0 p-3">
+  <div class="toast show" role="alert">
+    <div class="toast-header bg-danger text-white">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      <strong class="me-auto">Error</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <%= error %>
+    </div>
+  </div>
+</div>
+<script>
+  setTimeout(() => {
+    document.querySelector('.toast').classList.remove('show');
+  }, 5000);
+</script>
+<% } %>
+
+      </main>
+    </div>
+  </div>
+</body>
+<%- include('../partials/footer') %>
