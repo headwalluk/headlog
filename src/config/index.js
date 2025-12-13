@@ -105,7 +105,13 @@ const config = {
 
   // UI
   ui: {
-    enabled: parseBoolEnv(process.env.UI_ENABLED, true)
+    enabled: parseBoolEnv(process.env.UI_ENABLED, false)
+  },
+
+  // CORS
+  cors: {
+    enabled: parseBoolEnv(process.env.CORS_ENABLED, true),
+    origin: process.env.CORS_ORIGIN || false // false = no CORS (block all cross-origin)
   },
 
   // Upstream (Hierarchical Aggregation)

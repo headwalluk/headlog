@@ -1,0 +1,211 @@
+<%- include('../partials/head', { title: 'Manage User Roles' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/users' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">
+            <a href="/users/<%= targetUser.id %>" class="text-decoration-none text-muted me-2">
+              <i class="bi bi-arrow-left"></i>
+            </a>
+            Manage Roles: <%= targetUser.username %>
+          </h1>
+        </div>
+
+        <div class="row">
+          <!-- Current Roles -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Current Roles</h5>
+              </div>
+              <div class="card-body">
+                <% if (targetUser.is_superuser) { %>
+                  <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Superuser:</strong> This user has all permissions regardless of assigned roles.
+                  </div>
+                <% } %>
+
+                <% if (userRoles.length === 0) { %>
+                  <p class="text-muted">
+                    <i class="bi bi-info-circle"></i> No roles assigned to this user.
+                  </p>
+                <% } else { %>
+                  <div class="list-group">
+                    <% for (var i = 0; i < userRoles.length; i++) { %>
+                      <% var role = userRoles[i]; %>
+                      <div class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                          <div class="fw-bold"><%= role.name %></div>
+                          <% if (role.description) { %>
+                            <small class="text-muted"><%= role.description %></small>
+                          <% } %>
+                        </div>
+                        <form method="POST" action="/users/<%= targetUser.id %>/roles/<%= role.id %>/remove" style="display: inline;">
+                          <button 
+                            type="submit" 
+                            class="btn btn-sm btn-outline-danger text-nowrap"
+                            onclick="return confirm('Remove role <%= role.name %> from <%= targetUser.username %>?')"
+                          >
+                            <i class="bi bi-x-circle"></i> Remove
+                          </button>
+                        </form>
+                      </div>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Roles -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Available Roles</h5>
+              </div>
+              <div class="card-body">
+                <% 
+                  // Filter out roles already assigned
+                  var assignedRoleIds = userRoles.map(function(r) { return r.id; });
+                  var availableRoles = allRoles.filter(function(r) { 
+                    return assignedRoleIds.indexOf(r.id) === -1; 
+                  });
+                %>
+
+                <% if (availableRoles.length === 0) { %>
+                  <p class="text-muted">
+                    <i class="bi bi-check-circle"></i> All roles have been assigned to this user.
+                  </p>
+                <% } else { %>
+                  <div class="list-group">
+                    <% for (var i = 0; i < availableRoles.length; i++) { %>
+                      <% var role = availableRoles[i]; %>
+                      <div class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                          <div class="fw-bold"><%= role.name %></div>
+                          <% if (role.description) { %>
+                            <small class="text-muted"><%= role.description %></small>
+                          <% } %>
+                        </div>
+                        <form method="POST" action="/users/<%= targetUser.id %>/roles/<%= role.id %>/assign" style="display: inline;">
+                          <button type="submit" class="btn btn-sm btn-primary text-nowrap">
+                            <i class="bi bi-plus-circle"></i> Assign
+                          </button>
+                        </form>
+                      </div>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Role Information -->
+          <div class="col-md-12 mb-4">
+            <div class="card">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Role Information</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <% for (var i = 0; i < allRoles.length; i++) { %>
+                    <% var role = allRoles[i]; %>
+                    <div class="col-md-6 mb-3">
+                      <div class="card">
+                        <div class="card-body">
+                          <h6 class="card-title">
+                            <i class="bi bi-shield"></i> <%= role.name %>
+                          </h6>
+                          <% if (role.description) { %>
+                            <p class="card-text small"><%= role.description %></p>
+                          <% } %>
+                          <% if (role.capabilities && role.capabilities.length > 0) { %>
+                            <p class="card-text small mb-0">
+                              <strong>Capabilities:</strong>
+                              <br>
+                              <% for (var j = 0; j < Math.min(5, role.capabilities.length); j++) { %>
+                                <code class="small"><%= role.capabilities[j].name %></code><% if (j < Math.min(4, role.capabilities.length - 1)) { %>, <% } %>
+                              <% } %>
+                              <% if (role.capabilities.length > 5) { %>
+                                <br><small class="text-muted">... and <%= role.capabilities.length - 5 %> more</small>
+                              <% } %>
+                            </p>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1050;">
+    <% if (success) { %>
+      <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+          <i class="bi bi-check-circle me-2"></i>
+          <strong class="me-auto">Success</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= success %>
+        </div>
+      </div>
+    <% } %>
+    
+    <% if (error) { %>
+      <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-danger text-white">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong class="me-auto">Error</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= error %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    // Show toasts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const successToast = document.getElementById('successToast');
+      const errorToast = document.getElementById('errorToast');
+      
+      if (successToast) {
+        const toast = new bootstrap.Toast(successToast, {
+          autohide: true,
+          delay: 5000
+        });
+        toast.show();
+      }
+      
+      if (errorToast) {
+        const toast = new bootstrap.Toast(errorToast, {
+          autohide: true,
+          delay: 5000
+        });
+        toast.show();
+      }
+    });
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

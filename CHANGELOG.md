@@ -7,7 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.5.1] - 2025-12-08
+## [1.7.0] - 2025-12-13
+
+### Added
+
+- **Web UI Enhancements**
+  - Bootstrap 5.3 now served from npm packages via `/vendor/` (no CDN dependency)
+  - CORS support with `@fastify/cors` for API protection
+  - UI can be disabled via `UI_ENABLED=false` (defaults to false for API-only mode)
+  - Toast notifications (bottom-left, auto-dismiss) replacing inline alerts
+  - Proper Bootstrap 5 navbar structure with left-sliding mobile sidebar
+  - Login page branding with custom logo
+
+- **User Management (Complete CRUD)**
+  - User list page with search, filter (active/inactive), and pagination
+  - User detail page with information cards, roles, and activity history
+  - Create/edit user forms with validation and help sidebar
+  - Password reset functionality from detail page
+  - Role management page (assign/remove roles)
+  - Delete user with confirmation modal
+  - All operations capability-gated and audit logged
+
+- **UI Routing System**
+  - Centralized route registry (`src/config/routes.js`)
+  - Dynamic sidebar navigation based on user capabilities
+  - UI helper utilities for capability checks and menu generation
+  - Comprehensive routing documentation
+
+- **UI Style Guides**
+  - List pages pattern guide
+  - Detail/view pages pattern guide
+  - Edit/create forms pattern guide
+  - Related entity management pattern guide
+  - UI conventions and cross-cutting patterns guide
+
+### Changed
+
+- **Bootstrap Assets**: Now served from `/vendor/bootstrap/` and `/vendor/bootstrap-icons/` instead of CDN
+- **UI Default**: `UI_ENABLED` now defaults to `false` (API-only mode) instead of `true`
+- **Session Logout**: Fixed to properly await session destruction before redirecting
+- **Header Navigation**: Rebuilt using proper Bootstrap 5 navbar structure with `navbar-expand-md`
+- **Sidebar**: Slides in from left on mobile instead of dropping from top
+
+### Fixed
+
+- Login/logout flow now works correctly with proper session destruction
+- Dropdown menus position correctly with `navbar-expand-md` class
+- Username validation pattern (escaped hyphen in regex)
+- Static file paths (favicon and header icon now load correctly)
+- Bootstrap JS now loaded on all pages via footer include
+- Mobile sidebar animation (horizontal slide instead of vertical)
+
+### Developer Experience
+
+- Added comprehensive UI style guide documentation in `dev-notes/`
+- Established design patterns for future CRUD modules
+- User management pages serve as master examples
+
+## [1.6.1] - 2025-12-12
 
 ### Fixed
 

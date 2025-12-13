@@ -1,5 +1,6 @@
 const config = require('./config');
 const fastify = require('fastify');
+const cors = require('@fastify/cors');
 const compress = require('@fastify/compress');
 const rateLimit = require('@fastify/rate-limit');
 const view = require('@fastify/view');
@@ -194,6 +195,22 @@ async function start() {
     await prewarmHostCache(1000); // Load top 1000 hosts by last_seen_at
     app.log.info('Host cache pre-warmed successfully');
 
+    // Register CORS plugin
+    if (config.cors.enabled) {
+      await app.register(cors, {
+        origin: config.ui.enabled && config.cors.origin ? config.cors.origin : false,
+        credentials: config.ui.enabled // Allow credentials only when UI is enabled
+      });
+      
+      if (config.ui.enabled && config.cors.origin) {
+        app.log.info(`CORS enabled for origin: ${config.cors.origin}`);
+      } else if (config.ui.enabled) {
+        app.log.info('CORS enabled for same-origin requests only');
+      } else {
+        app.log.info('CORS blocking all cross-origin requests (API-only mode)');
+      }
+    }
+
     // Register plugins for UI (if enabled)
     if (config.ui.enabled) {
       app.log.info('Configuring Web UI...');
@@ -227,6 +244,13 @@ async function start() {
       await app.register(staticPlugin, {
         root: path.join(__dirname, '..', 'public'),
         prefix: '/static/'
+      });
+
+      // Register vendor assets from node_modules
+      await app.register(staticPlugin, {
+        root: path.join(__dirname, '..', 'node_modules'),
+        prefix: '/vendor/',
+        decorateReply: false
       });
 
       // Register view engine (EJS)

@@ -1,6 +1,6 @@
 {
   "name": "headlog",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "Centralised Apache log aggregation system",
   "main": "src/server.js",
   "scripts": {
@@ -32,12 +32,15 @@
   "dependencies": {
     "@fastify/compress": "^8.0.1",
     "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.2.0",
     "@fastify/formbody": "^8.0.2",
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/session": "^11.1.1",
     "@fastify/static": "^8.3.0",
     "@fastify/view": "^11.1.1",
     "bcrypt": "^6.0.0",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "cli-table3": "^0.6.5",
     "commander": "^14.0.2",
     "dotenv": "^17.2.3",

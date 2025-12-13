@@ -88,7 +88,12 @@ async function authRoutes(fastify, _options) {
    */
   fastify.post('/logout', async (request, reply) => {
     if (request.session) {
-      request.session.destroy();
+      await new Promise((resolve, reject) => {
+        request.session.destroy((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
     }
     return reply.redirect('/login');
   });

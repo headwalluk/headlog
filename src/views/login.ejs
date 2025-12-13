@@ -3,8 +3,10 @@
   <main class="form-signin w-100 m-auto" style="max-width: 330px;">
     <form action="/auth/login" method="POST">
       <div class="text-center mb-4">
-        <i class="bi bi-collection-fill" style="font-size: 3rem;"></i>
-        <h1 class="h3 mb-3 fw-normal">Headlog</h1>
+        <div class="d-flex align-items-center justify-content-center mb-3">
+          <img src="/static/header-icon.webp" alt="Headlog" style="width: 48px; height: 48px; margin-right: 12px;">
+          <h1 class="h3 mb-0 fw-normal">Headlog</h1>
+        </div>
         <p class="text-muted">Log Management System</p>
       </div>
 
@@ -36,10 +38,6 @@
       <button class="btn btn-primary w-100 py-2" type="submit">
         <i class="bi bi-box-arrow-in-right"></i> Sign in
       </button>
-      
-      <p class="mt-5 mb-3 text-body-secondary text-center">
-        &copy; 2025 Headlog v<%= config.version %>
-      </p>
     </form>
   </main>
 </body>

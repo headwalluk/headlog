@@ -1,0 +1,288 @@
+<%- include('../partials/head', { title: targetUser ? 'Edit User' : 'Create User' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/users' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">
+            <a href="<%= targetUser ? '/users/' + targetUser.id : '/users' %>" class="text-decoration-none text-muted me-2">
+              <i class="bi bi-arrow-left"></i>
+            </a>
+            <%= targetUser ? 'Edit User: ' + targetUser.username : 'Create New User' %>
+          </h1>
+        </div>
+
+        <div class="row">
+          <div class="col-md-8">
+            <form method="POST" action="<%= targetUser ? '/users/' + targetUser.id + '/update' : '/users/create' %>" id="userForm">
+              <!-- Basic Information -->
+              <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0"><i class="bi bi-person-circle"></i> User Information</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        id="username" 
+                        name="username" 
+                        value="<%= targetUser ? targetUser.username : '' %>"
+                        required
+                        minlength="3"
+                        maxlength="50"
+                        pattern="[a-zA-Z0-9_\-]+"
+                        title="Only letters, numbers, underscores, and hyphens allowed"
+                      >
+                      <small class="form-text text-muted">3-50 characters. Letters, numbers, underscore, hyphen only.</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                      <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                      <input 
+                        type="email" 
+                        class="form-control" 
+                        id="email" 
+                        name="email" 
+                        value="<%= targetUser ? targetUser.email : '' %>"
+                        required
+                        maxlength="255"
+                      >
+                      <small class="form-text text-muted">Valid email address required</small>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-12 mb-3">
+                      <div class="form-check">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="is_active" 
+                          name="is_active"
+                          value="1"
+                          <%= !targetUser || targetUser.is_active ? 'checked' : '' %>
+                        >
+                        <label class="form-check-label" for="is_active">
+                          Active
+                        </label>
+                        <small class="form-text text-muted d-block">Inactive users cannot log in</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <% if (user.is_superuser) { %>
+                    <div class="row">
+                      <div class="col-md-12 mb-3">
+                        <div class="form-check">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="is_superuser" 
+                            name="is_superuser"
+                            value="1"
+                            <%= targetUser && targetUser.is_superuser ? 'checked' : '' %>
+                          >
+                          <label class="form-check-label" for="is_superuser">
+                            Superuser
+                          </label>
+                          <small class="form-text text-muted d-block">
+                            <i class="bi bi-exclamation-triangle text-warning"></i> 
+                            Superusers have all permissions in the system
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Password Section (only for create) -->
+              <% if (!targetUser) { %>
+                <div class="card mb-4">
+                  <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="bi bi-key"></i> Password</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="alert alert-info">
+                      <i class="bi bi-info-circle"></i> Password must be at least 12 characters and include:
+                      <ul class="mb-0 mt-2">
+                        <li>At least one uppercase letter</li>
+                        <li>At least one lowercase letter</li>
+                        <li>At least one number</li>
+                        <li>At least one special character</li>
+                      </ul>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input 
+                          type="password" 
+                          class="form-control" 
+                          id="password" 
+                          name="password" 
+                          required
+                          minlength="12"
+                        >
+                      </div>
+
+                      <div class="col-md-6 mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                        <input 
+                          type="password" 
+                          class="form-control" 
+                          id="confirmPassword" 
+                          name="confirmPassword" 
+                          required
+                          minlength="12"
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+
+              <!-- Form Actions -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between">
+                    <a href="<%= targetUser ? '/users/' + targetUser.id : '/users' %>" class="btn btn-secondary">
+                      <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-circle"></i> <%= targetUser ? 'Update User' : 'Create User' %>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Help Sidebar -->
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Help</h5>
+              </div>
+              <div class="card-body">
+                <h6>Username Requirements</h6>
+                <ul class="small">
+                  <li>3-50 characters</li>
+                  <li>Letters, numbers, underscore (_), hyphen (-) only</li>
+                  <li>Must be unique</li>
+                </ul>
+
+                <h6 class="mt-3">Email Requirements</h6>
+                <ul class="small">
+                  <li>Valid email format</li>
+                  <li>Must be unique</li>
+                </ul>
+
+                <% if (!targetUser) { %>
+                  <h6 class="mt-3">Password Requirements</h6>
+                  <ul class="small">
+                    <li>Minimum 12 characters</li>
+                    <li>At least one uppercase letter (A-Z)</li>
+                    <li>At least one lowercase letter (a-z)</li>
+                    <li>At least one number (0-9)</li>
+                    <li>At least one special character (!@#$%^&*etc)</li>
+                  </ul>
+                <% } else { %>
+                  <h6 class="mt-3">Password Reset</h6>
+                  <p class="small mb-0">
+                    To change this user's password, use the "Reset Password" option on the user detail page.
+                  </p>
+                <% } %>
+
+                <% if (user.is_superuser) { %>
+                  <h6 class="mt-3">Superuser Status</h6>
+                  <p class="small mb-0">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    Superusers bypass all capability checks and have full system access. Use with caution.
+                  </p>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Password confirmation validation
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('confirmPassword');
+    
+    if (confirmField) {
+      confirmField.addEventListener('input', function() {
+        if (passwordField.value !== this.value) {
+          this.setCustomValidity('Passwords do not match');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
+
+      passwordField.addEventListener('input', function() {
+        if (confirmField.value && passwordField.value !== confirmField.value) {
+          confirmField.setCustomValidity('Passwords do not match');
+        } else {
+          confirmField.setCustomValidity('');
+        }
+      });
+    }
+
+    // Form submission
+    document.getElementById('userForm').addEventListener('submit', function(e) {
+      if (confirmField && passwordField.value !== confirmField.value) {
+        e.preventDefault();
+        alert('Passwords do not match');
+        return false;
+      }
+    });
+  </script>
+
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1050;">
+    <% if (error) { %>
+      <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-danger text-white">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong class="me-auto">Error</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= error %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    // Show toast on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const errorToast = document.getElementById('errorToast');
+      
+      if (errorToast) {
+        const toast = new bootstrap.Toast(errorToast, {
+          autohide: true,
+          delay: 5000
+        });
+        toast.show();
+      }
+    });
+  </script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

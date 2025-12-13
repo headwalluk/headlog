@@ -253,5 +253,60 @@
       }
     });
   </script>
+
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1050;">
+    <% if (success) { %>
+      <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+          <i class="bi bi-check-circle me-2"></i>
+          <strong class="me-auto">Success</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= success %>
+        </div>
+      </div>
+    <% } %>
+    
+    <% if (error) { %>
+      <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-danger text-white">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong class="me-auto">Error</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <%= error %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    // Show toasts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const successToast = document.getElementById('successToast');
+      const errorToast = document.getElementById('errorToast');
+      
+      if (successToast) {
+        const toast = new bootstrap.Toast(successToast, {
+          autohide: true,
+          delay: 5000
+        });
+        toast.show();
+      }
+      
+      if (errorToast) {
+        const toast = new bootstrap.Toast(errorToast, {
+          autohide: true,
+          delay: 5000
+        });
+        toast.show();
+      }
+    });
+  </script>
+
+  <%- include('../partials/footer') %>
 </body>
 </html>

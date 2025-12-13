@@ -1,16 +1,17 @@
-<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="/dashboard">
-    <i class="bi bi-collection-fill"></i> Headlog
-  </a>
-  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" 
-          data-bs-toggle="collapse" data-bs-target="#sidebarMenu" 
-          aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="navbar-nav">
-    <div class="nav-item text-nowrap">
-      <div class="dropdown">
-        <a class="nav-link px-3 dropdown-toggle" href="#" role="button" id="userDropdown" 
+<nav class="navbar navbar-expand-md navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+  <div class="container-fluid">
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="/dashboard">
+      <img src="/static/header-icon.webp" alt="Headlog" style="height: 24px; width: 24px; margin-right: 8px; vertical-align: middle;">
+      Headlog
+    </a>
+    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" 
+            data-bs-toggle="collapse" data-bs-target="#sidebarMenu" 
+            aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle px-3" href="#" role="button" id="userDropdown" 
            data-bs-toggle="dropdown" aria-expanded="false">
           <i class="bi bi-person-circle"></i>
           <% if (user) { %>
@@ -31,7 +32,7 @@
             </form>
           </li>
         </ul>
-      </div>
-    </div>
+      </li>
+    </ul>
   </div>
-</header>
+</nav>
