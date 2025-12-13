@@ -1,0 +1,257 @@
+<%- include('../partials/head', { title: 'User Details' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/users' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">
+            <a href="/users" class="text-decoration-none text-muted me-2">
+              <i class="bi bi-arrow-left"></i>
+            </a>
+            User Details: <%= targetUser.username %>
+          </h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+              <% if (canEdit) { %>
+                <a href="/users/<%= targetUser.id %>/edit" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+              <% } %>
+              <% if (canDelete && targetUser.id !== user.id) { %>
+                <button 
+                  class="btn btn-sm btn-outline-danger" 
+                  onclick="confirmDelete(<%= targetUser.id %>, '<%= targetUser.username %>')"
+                >
+                  <i class="bi bi-trash"></i> Delete
+                </button>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- User Information Card -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle"></i> User Information</h5>
+              </div>
+              <div class="card-body">
+                <dl class="row mb-0">
+                  <dt class="col-sm-4">Username</dt>
+                  <dd class="col-sm-8"><strong><%= targetUser.username %></strong></dd>
+
+                  <dt class="col-sm-4">Email</dt>
+                  <dd class="col-sm-8"><%= targetUser.email %></dd>
+
+                  <dt class="col-sm-4">Status</dt>
+                  <dd class="col-sm-8">
+                    <% if (targetUser.is_active) { %>
+                      <span class="badge bg-success">Active</span>
+                    <% } else { %>
+                      <span class="badge bg-secondary">Inactive</span>
+                    <% } %>
+                  </dd>
+
+                  <dt class="col-sm-4">Type</dt>
+                  <dd class="col-sm-8">
+                    <% if (targetUser.is_superuser) { %>
+                      <span class="badge bg-danger">Superuser</span>
+                    <% } else { %>
+                      <span class="badge bg-info">Regular User</span>
+                    <% } %>
+                  </dd>
+
+                  <dt class="col-sm-4">User ID</dt>
+                  <dd class="col-sm-8"><code><%= targetUser.id %></code></dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Card -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Activity</h5>
+              </div>
+              <div class="card-body">
+                <dl class="row mb-0">
+                  <dt class="col-sm-5">Last Login</dt>
+                  <dd class="col-sm-7">
+                    <% if (targetUser.last_login_at) { %>
+                      <%= new Date(targetUser.last_login_at).toLocaleString() %>
+                      <% if (targetUser.last_login_ip) { %>
+                        <br><small class="text-muted">from <%= targetUser.last_login_ip %></small>
+                      <% } %>
+                    <% } else { %>
+                      <span class="text-muted">Never logged in</span>
+                    <% } %>
+                  </dd>
+
+                  <dt class="col-sm-5">Account Created</dt>
+                  <dd class="col-sm-7">
+                    <%= new Date(targetUser.created_at).toLocaleString() %>
+                  </dd>
+
+                  <dt class="col-sm-5">Last Updated</dt>
+                  <dd class="col-sm-7">
+                    <%= new Date(targetUser.updated_at).toLocaleString() %>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <!-- Roles Card -->
+          <div class="col-md-12 mb-4">
+            <div class="card">
+              <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Roles & Permissions</h5>
+                <% if (canManageRoles) { %>
+                  <a href="/users/<%= targetUser.id %>/roles" class="btn btn-sm btn-light">
+                    <i class="bi bi-pencil"></i> Manage Roles
+                  </a>
+                <% } %>
+              </div>
+              <div class="card-body">
+                <% if (targetUser.is_superuser) { %>
+                  <div class="alert alert-warning mb-3">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Superuser:</strong> This user has all permissions and capabilities in the system.
+                  </div>
+                <% } %>
+
+                <% if (userRoles.length === 0) { %>
+                  <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i> No roles assigned to this user.
+                  </p>
+                <% } else { %>
+                  <div class="row">
+                    <% for (var i = 0; i < userRoles.length; i++) { %>
+                      <% var role = userRoles[i]; %>
+                      <div class="col-md-4 mb-3">
+                        <div class="card">
+                          <div class="card-body">
+                            <h6 class="card-title">
+                              <i class="bi bi-shield"></i> <%= role.name %>
+                            </h6>
+                            <% if (role.description) { %>
+                              <p class="card-text small text-muted mb-0">
+                                <%= role.description %>
+                              </p>
+                            <% } %>
+                          </div>
+                        </div>
+                      </div>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Password Reset Card (if user has permission) -->
+          <% if (user.is_superuser || user.capabilities.includes('users:reset-password')) { %>
+            <div class="col-md-12 mb-4">
+              <div class="card border-warning">
+                <div class="card-header bg-warning">
+                  <h5 class="mb-0"><i class="bi bi-key"></i> Password Management</h5>
+                </div>
+                <div class="card-body">
+                  <p class="mb-3">
+                    Reset this user's password. The user will be required to set a new password on next login.
+                  </p>
+                  <form method="POST" action="/users/<%= targetUser.id %>/reset-password" onsubmit="return confirm('Are you sure you want to reset this user\'s password?');">
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input 
+                          type="password" 
+                          class="form-control" 
+                          id="newPassword" 
+                          name="password" 
+                          required
+                          minlength="12"
+                          placeholder="Minimum 12 characters"
+                        >
+                        <small class="form-text text-muted">
+                          Must include uppercase, lowercase, number, and special character
+                        </small>
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input 
+                          type="password" 
+                          class="form-control" 
+                          id="confirmPassword" 
+                          name="confirmPassword" 
+                          required
+                          minlength="12"
+                          placeholder="Re-enter password"
+                        >
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-warning">
+                      <i class="bi bi-key"></i> Reset Password
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete user <strong id="deleteUsername"></strong>?</p>
+          <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form id="deleteForm" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger">Delete User</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function confirmDelete(userId, username) {
+      document.getElementById('deleteUsername').textContent = username;
+      document.getElementById('deleteForm').action = '/users/' + userId + '/delete';
+      var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+      deleteModal.show();
+    }
+
+    // Password confirmation validation
+    document.getElementById('confirmPassword')?.addEventListener('input', function() {
+      var password = document.getElementById('newPassword').value;
+      var confirm = this.value;
+      if (password !== confirm) {
+        this.setCustomValidity('Passwords do not match');
+      } else {
+        this.setCustomValidity('');
+      }
+    });
+  </script>
+</body>
+</html>

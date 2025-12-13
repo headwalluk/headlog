@@ -1,0 +1,258 @@
+<%- include('../partials/head', { title: 'Users' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/users' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">
+            <i class="bi bi-people"></i> Users
+          </h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <% if (user.is_superuser || user.capabilities.includes('users:write')) { %>
+              <a href="/users/new" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Create User
+              </a>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <form method="GET" action="/users" class="row g-2">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    name="search" 
+                    placeholder="Search by username or email..." 
+                    value="<%= search %>"
+                  >
+                </div>
+              </div>
+              <div class="col-md-3">
+                <select class="form-select" name="active">
+                  <option value="">All Users</option>
+                  <option value="true" <%= activeFilter === 'true' ? 'selected' : '' %>>Active Only</option>
+                  <option value="false" <%= activeFilter === 'false' ? 'selected' : '' %>>Inactive Only</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-funnel"></i> Filter
+                </button>
+                <% if (search || activeFilter) { %>
+                  <a href="/users" class="btn btn-outline-secondary w-100 mt-1">
+                    <i class="bi bi-x-circle"></i> Clear
+                  </a>
+                <% } %>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <p class="text-muted">
+              Showing <%= users.length %> of <%= pagination.totalCount.toLocaleString() %> users
+              <% if (search) { %>
+                matching "<%= search %>"
+              <% } %>
+            </p>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <% if (users.length === 0) { %>
+          <!-- Empty State -->
+          <div class="text-center py-5">
+            <i class="bi bi-people" style="font-size: 4rem; color: #ccc;"></i>
+            <h3 class="mt-3">No Users Found</h3>
+            <p class="text-muted">
+              <% if (search || activeFilter) { %>
+                Try adjusting your filters or search terms.
+              <% } else { %>
+                There are no users in the system.
+              <% } %>
+            </p>
+            <% if (search || activeFilter) { %>
+              <a href="/users" class="btn btn-primary">Clear Filters</a>
+            <% } %>
+          </div>
+        <% } else { %>
+          <!-- Data Table -->
+          <div class="table-responsive">
+            <table class="table table-hover table-striped">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Type</th>
+                  <th>Last Login</th>
+                  <th>Created</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% for (var i = 0; i < users.length; i++) { %>
+                  <% var targetUser = users[i]; %>
+                  <tr>
+                    <td>
+                      <a href="/users/<%= targetUser.id %>" class="text-decoration-none">
+                        <strong><%= targetUser.username %></strong>
+                      </a>
+                    </td>
+                    <td><%= targetUser.email %></td>
+                    <td>
+                      <% if (targetUser.is_active) { %>
+                        <span class="badge bg-success">Active</span>
+                      <% } else { %>
+                        <span class="badge bg-secondary">Inactive</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (targetUser.is_superuser) { %>
+                        <span class="badge bg-danger">Superuser</span>
+                      <% } else { %>
+                        <span class="badge bg-info">User</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (targetUser.last_login_at) { %>
+                        <small><%= new Date(targetUser.last_login_at).toLocaleString() %></small>
+                      <% } else { %>
+                        <small class="text-muted">Never</small>
+                      <% } %>
+                    </td>
+                    <td>
+                      <small><%= new Date(targetUser.created_at).toLocaleDateString() %></small>
+                    </td>
+                    <td class="text-end">
+                      <div class="btn-group btn-group-sm">
+                        <a href="/users/<%= targetUser.id %>" class="btn btn-outline-primary" title="View Details">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                        <% if (user.is_superuser || user.capabilities.includes('users:write')) { %>
+                          <a href="/users/<%= targetUser.id %>/edit" class="btn btn-outline-secondary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                          </a>
+                        <% } %>
+                        <% if ((user.is_superuser || user.capabilities.includes('users:delete')) && targetUser.id !== user.id) { %>
+                          <button 
+                            class="btn btn-outline-danger" 
+                            title="Delete"
+                            onclick="confirmDelete(<%= targetUser.id %>, '<%= targetUser.username %>')"
+                          >
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        <% } %>
+                      </div>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <% if (pagination.totalPages > 1) { %>
+            <nav aria-label="User pagination">
+              <ul class="pagination justify-content-center">
+                <!-- Previous -->
+                <li class="page-item <%= pagination.currentPage === 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= pagination.currentPage - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= activeFilter ? '&active=' + activeFilter : '' %>">
+                    Previous
+                  </a>
+                </li>
+
+                <!-- Page Numbers -->
+                <% 
+                  var startPage = Math.max(1, pagination.currentPage - 2);
+                  var endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
+                %>
+                
+                <% if (startPage > 1) { %>
+                  <li class="page-item">
+                    <a class="page-link" href="?page=1<%= search ? '&search=' + encodeURIComponent(search) : '' %><%= activeFilter ? '&active=' + activeFilter : '' %>">1</a>
+                  </li>
+                  <% if (startPage > 2) { %>
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                  <% } %>
+                <% } %>
+
+                <% for (var p = startPage; p <= endPage; p++) { %>
+                  <li class="page-item <%= p === pagination.currentPage ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= p %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= activeFilter ? '&active=' + activeFilter : '' %>">
+                      <%= p %>
+                    </a>
+                  </li>
+                <% } %>
+
+                <% if (endPage < pagination.totalPages) { %>
+                  <% if (endPage < pagination.totalPages - 1) { %>
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                  <% } %>
+                  <li class="page-item">
+                    <a class="page-link" href="?page=<%= pagination.totalPages %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= activeFilter ? '&active=' + activeFilter : '' %>">
+                      <%= pagination.totalPages %>
+                    </a>
+                  </li>
+                <% } %>
+
+                <!-- Next -->
+                <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= pagination.currentPage + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= activeFilter ? '&active=' + activeFilter : '' %>">
+                    Next
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          <% } %>
+        <% } %>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete user <strong id="deleteUsername"></strong>?</p>
+          <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form id="deleteForm" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger">Delete User</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function confirmDelete(userId, username) {
+      document.getElementById('deleteUsername').textContent = username;
+      document.getElementById('deleteForm').action = '/users/' + userId + '/delete';
+      var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+      deleteModal.show();
+    }
+  </script>
+</body>
+</html>
