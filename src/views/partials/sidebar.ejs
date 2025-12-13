@@ -4,13 +4,14 @@
       <% if (navigationMenu) { %>
         <%# Main navigation (routes without section) %>
         <% if (navigationMenu.main && navigationMenu.main.length > 0) { %>
-          <% navigationMenu.main.forEach(route => { %>
+          <% for (var i = 0; i < navigationMenu.main.length; i++) { %>
+            <% var route = navigationMenu.main[i]; %>
             <li class="nav-item">
               <a class="nav-link <%= currentPath === route.path || currentPath.startsWith(route.path + '/') ? 'active' : '' %>" href="<%= route.path %>">
                 <i class="bi <%= route.icon %>"></i> <%= route.label %>
               </a>
             </li>
-          <% }); %>
+          <% } %>
         <% } %>
 
         <%# Security section %>
@@ -20,13 +21,14 @@
               <span>Security</span>
             </h6>
           </li>
-          <% navigationMenu.Security.forEach(route => { %>
+          <% for (var i = 0; i < navigationMenu.Security.length; i++) { %>
+            <% var route = navigationMenu.Security[i]; %>
             <li class="nav-item">
               <a class="nav-link <%= currentPath === route.path || currentPath.startsWith(route.path + '/') ? 'active' : '' %>" href="<%= route.path %>">
                 <i class="bi <%= route.icon %>"></i> <%= route.label %>
               </a>
             </li>
-          <% }); %>
+          <% } %>
         <% } %>
 
         <%# Administration section %>
@@ -36,32 +38,14 @@
               <span>Administration</span>
             </h6>
           </li>
-          <% navigationMenu.Administration.forEach(route => { %>
+          <% for (var i = 0; i < navigationMenu.Administration.length; i++) { %>
+            <% var route = navigationMenu.Administration[i]; %>
             <li class="nav-item">
               <a class="nav-link <%= currentPath === route.path || currentPath.startsWith(route.path + '/') ? 'active' : '' %>" href="<%= route.path %>">
                 <i class="bi <%= route.icon %>"></i> <%= route.label %>
               </a>
             </li>
-          <% }); %>
-        <% } %>
-      <% } %>
-    </ul>
-  </div>
-</nav>
-
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/audit' ? 'active' : '' %>" href="/audit">
-            <i class="bi bi-clock-history"></i> Audit Log
-          </a>
-        </li>
-        <% } %>
-        <% if (hasCapability('settings:read')) { %>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/settings' ? 'active' : '' %>" href="/settings">
-            <i class="bi bi-gear"></i> Settings
-          </a>
-        </li>
-        <% } %>
+          <% } %>
         <% } %>
       <% } %>
     </ul>
