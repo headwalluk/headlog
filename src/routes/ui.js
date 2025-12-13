@@ -73,7 +73,7 @@ async function uiRoutes(fastify, _options) {
       const { pool } = fastify;
 
       try {
-        // Query stats
+        // Query stats from existing tables only
         const [logCountRows] = await pool.query('SELECT COUNT(*) as count FROM log_records');
         const logCount = logCountRows[0].count;
 
@@ -82,17 +82,10 @@ async function uiRoutes(fastify, _options) {
         );
         const websiteCount = websiteCountRows[0].count;
 
-        const [hostCountRows] = await pool.query(
-          'SELECT COUNT(DISTINCT hostname) as count FROM log_records'
-        );
+        const [hostCountRows] = await pool.query('SELECT COUNT(*) as count FROM hosts');
         const hostCount = hostCountRows[0].count;
 
-        const [securityEventsRows] = await pool.query(
-          'SELECT COUNT(*) as count FROM security_events WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)'
-        );
-        const securityEvents24h = securityEventsRows[0].count;
-
-        // Query recent activity from audit log
+        // Query recent activity from audit log (limit to last 10)
         const [recentActivity] = await pool.query(`
         SELECT 
           al.id,
@@ -101,7 +94,6 @@ async function uiRoutes(fastify, _options) {
           al.action,
           al.resource_type,
           al.resource_id,
-          al.details,
           al.ip_address,
           al.created_at
         FROM audit_log al
@@ -115,8 +107,7 @@ async function uiRoutes(fastify, _options) {
           stats: {
             logCount,
             websiteCount,
-            hostCount,
-            securityEvents24h
+            hostCount
           },
           recentActivity,
           currentPath: '/dashboard',

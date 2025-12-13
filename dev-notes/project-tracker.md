@@ -457,7 +457,135 @@
 
 ---
 
-### Milestone 7: Login Page & Dashboard
+### Milestone 7: UI Routing & Navigation System
+**Goal:** Establish UI routing patterns and capability-based navigation
+
+**Status:** 🔄 In Progress  
+**Target:** Day 7  
+**Estimated Effort:** 4-6 hours
+
+**Tasks:**
+- [x] Fix dashboard to render properly
+  - [x] Remove security_events query (table doesn't exist yet)
+  - [x] Query only existing tables (log_records, websites, hosts, audit_log)
+  - [x] Simplify stats to 3 cards instead of 4
+  - [x] Add number formatting (toLocaleString) for log count
+- [ ] Create route registry system
+  - [ ] Create src/config/routes.js - central route definitions
+  - [ ] Map routes to required capabilities
+  - [ ] Export route metadata for sidebar rendering
+  - [ ] Include route patterns, labels, icons, parent routes
+- [ ] Update sidebar to use route registry
+  - [ ] Read routes from registry instead of hardcoded
+  - [ ] Filter routes by user capabilities
+  - [ ] Build hierarchical menu structure
+  - [ ] Highlight active route and parent
+- [ ] Create UI helper utilities
+  - [ ] src/utils/uiHelpers.js
+  - [ ] Function: getUserRoutes(user) - filter routes by capabilities
+  - [ ] Function: checkAccess(user, route) - verify capability match
+  - [ ] Function: formatRouteForMenu(route) - prepare route for rendering
+- [ ] Document routing patterns
+  - [ ] Create dev-notes/ui-routing.md
+  - [ ] Explain route registry structure
+  - [ ] Document capability checks
+  - [ ] Show examples of adding new routes
+
+**Success Criteria:**
+- ✅ Dashboard renders without errors
+- ☐ Sidebar dynamically rendered from route registry
+- ☐ Routes properly filtered by user capabilities
+- ☐ Easy to add new routes with capability requirements
+
+**Dependencies:** Milestone 6 (Web UI Foundation)
+
+---
+
+### Milestone 8: UI Component Library & Design Patterns
+**Goal:** Establish reusable UI patterns with exemplar list and detail pages
+
+**Status:** Not Started  
+**Target:** Day 8-9  
+**Estimated Effort:** 8-10 hours
+
+**Tasks:**
+- [ ] Create exemplar pages (Users module)
+  - [ ] src/views/users/list.ejs - user list page
+  - [ ] src/views/users/detail.ejs - user detail/edit page
+  - [ ] Implement full CRUD with proper UI patterns
+- [ ] Design list page patterns
+  - [ ] Page header with title and actions (Create button)
+  - [ ] Search/filter bar (search input, filter dropdowns)
+  - [ ] Results table with sortable columns
+  - [ ] Pagination controls (bottom of table)
+  - [ ] Loading spinner (full-page overlay)
+  - [ ] Empty state message (no results)
+  - [ ] Action buttons per row (Edit, Delete with confirmation)
+  - [ ] Bulk actions (optional, checkboxes)
+- [ ] Design detail/edit page patterns
+  - [ ] Page header with back button and title
+  - [ ] Form layout (sections, fieldsets)
+  - [ ] Input validation (client and server-side)
+  - [ ] Save/Cancel buttons (sticky at bottom)
+  - [ ] Delete button (separate, with confirmation modal)
+  - [ ] Loading states (saving, deleting)
+  - [ ] Success/error messages (toast notifications)
+  - [ ] Related data sections (e.g., user roles, audit log)
+- [ ] Create reusable UI components
+  - [ ] src/views/components/loading-spinner.ejs
+  - [ ] src/views/components/confirmation-modal.ejs
+  - [ ] src/views/components/toast-notification.ejs
+  - [ ] src/views/components/data-table.ejs
+  - [ ] src/views/components/pagination.ejs
+  - [ ] src/views/components/form-field.ejs
+- [ ] Implement responsive design
+  - [ ] Mobile layout (< 768px) - stacked, simplified
+  - [ ] Tablet layout (768px - 1024px) - hybrid
+  - [ ] Desktop layout (> 1024px) - full features
+  - [ ] Test on multiple screen sizes
+- [ ] Create JavaScript utilities
+  - [ ] public/js/ui.js - UI helper functions
+  - [ ] Loading spinner show/hide
+  - [ ] Toast notifications (success, error, info)
+  - [ ] Confirmation modals
+  - [ ] Form validation helpers
+  - [ ] AJAX request wrappers (with error handling)
+- [ ] Implement user list page
+  - [ ] GET /users route (requireCapability('users:read'))
+  - [ ] Query users with filtering, sorting, pagination
+  - [ ] Render list view with data
+  - [ ] Client-side search (filters table without reload)
+  - [ ] Action buttons: Edit, Disable/Enable, Reset Password, Delete
+- [ ] Implement user detail/edit page
+  - [ ] GET /users/:id route (requireCapability('users:read'))
+  - [ ] Load user, roles, audit log
+  - [ ] Render detail view with edit form
+  - [ ] POST /users/:id/update (requireCapability('users:write'))
+  - [ ] POST /users/:id/delete (requireCapability('users:delete'))
+  - [ ] POST /users/:id/roles (requireCapability('users:manage-roles'))
+  - [ ] Inline role assignment (checkboxes with AJAX save)
+- [ ] Document design patterns
+  - [ ] Create dev-notes/ui-design-patterns.md
+  - [ ] Screenshot/describe list page layout
+  - [ ] Screenshot/describe detail page layout
+  - [ ] Document component usage
+  - [ ] Provide code examples
+  - [ ] Mobile vs desktop differences
+  - [ ] Accessibility considerations
+
+**Success Criteria:**
+- ☐ User list page fully functional (search, sort, pagination)
+- ☐ User detail page fully functional (edit, delete, roles)
+- ☐ All UI patterns documented with examples
+- ☐ Design works on mobile, tablet, desktop
+- ☐ Reusable components created and tested
+- ☐ Can easily replicate patterns for new modules
+
+**Dependencies:** Milestone 7 (UI Routing)
+
+---
+
+### Milestone 9 (OLD - SKIP): Login Page & Dashboard
 
 **Goal:** Create functional login page and basic dashboard
 

@@ -29,18 +29,18 @@
 
         <!-- Quick Stats -->
         <div class="row mb-4">
-          <div class="col-md-3 mb-3">
+          <div class="col-md-4 mb-3">
             <div class="card text-bg-primary">
               <div class="card-body">
                 <h5 class="card-title">
                   <i class="bi bi-file-text"></i> Log Records
                 </h5>
-                <p class="card-text display-6"><%= stats.logCount || 0 %></p>
+                <p class="card-text display-6"><%= stats.logCount.toLocaleString() || 0 %></p>
                 <small>Total records</small>
               </div>
             </div>
           </div>
-          <div class="col-md-3 mb-3">
+          <div class="col-md-4 mb-3">
             <div class="card text-bg-success">
               <div class="card-body">
                 <h5 class="card-title">
@@ -51,25 +51,14 @@
               </div>
             </div>
           </div>
-          <div class="col-md-3 mb-3">
+          <div class="col-md-4 mb-3">
             <div class="card text-bg-info">
               <div class="card-body">
                 <h5 class="card-title">
                   <i class="bi bi-hdd-network"></i> Hosts
                 </h5>
                 <p class="card-text display-6"><%= stats.hostCount || 0 %></p>
-                <small>Active hosts</small>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3 mb-3">
-            <div class="card text-bg-warning">
-              <div class="card-body">
-                <h5 class="card-title">
-                  <i class="bi bi-exclamation-triangle"></i> Security
-                </h5>
-                <p class="card-text display-6"><%= stats.securityEventCount || 0 %></p>
-                <small>Events (24h)</small>
+                <small>Unique hosts</small>
               </div>
             </div>
           </div>
