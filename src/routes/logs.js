@@ -86,6 +86,18 @@ async function logRoutes(fastify) {
   // POST /logs - Ingest log records
   fastify.post('/logs', async (request, reply) => {
     try {
+      // Log request details for debugging Content-Length issues
+      const contentLength = request.headers['content-length'];
+      const contentEncoding = request.headers['content-encoding'];
+      const bodySize = request.body ? JSON.stringify(request.body).length : 0;
+      
+      request.log.debug({
+        contentLength,
+        contentEncoding,
+        bodySize,
+        mismatch: contentLength && bodySize !== parseInt(contentLength)
+      }, 'Log ingestion request received');
+
       const payload = request.body;
 
       // Check if this is a hierarchical batch upload

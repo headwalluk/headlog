@@ -108,10 +108,33 @@ async function start() {
     // Check .env file permissions before starting
     checkEnvPermissions();
 
-    // Register compression plugin (gzip support)
+    // Register compression plugin (gzip support for responses)
+    // Note: Only compress responses, not decompress requests
+    // Fastify automatically handles Content-Encoding on requests
     await app.register(compress, {
-      global: true,
-      encodings: ['gzip', 'deflate']
+      global: false, // Don't globally compress all responses
+      encodings: ['gzip', 'deflate'],
+      threshold: 1024, // Only compress responses > 1KB
+      // Decompression of requests is handled automatically by Fastify's body parser
+      requestEncodings: ['gzip', 'deflate'] // Support compressed incoming requests
+    });
+
+    // Add preParsing hook to log body parsing issues
+    app.addHook('preParsing', async (request, reply, payload) => {
+      // Log incoming request details for debugging Content-Length mismatches
+      if (request.url.startsWith('/api/logs') && request.method === 'POST') {
+        const contentLength = request.headers['content-length'];
+        const contentEncoding = request.headers['content-encoding'];
+        
+        request.log.debug({
+          url: request.url,
+          contentLength,
+          contentEncoding,
+          hasPayload: !!payload
+        }, 'Body parsing started');
+      }
+      
+      return payload;
     });
 
     // Register rate limiting (before auth to save CPU on failed requests)
@@ -281,13 +304,29 @@ async function start() {
 
     // Global error handler - prevent internal error leaks
     app.setErrorHandler((error, request, reply) => {
-      // Log full error details for debugging
-      app.log.error({
-        err: error,
-        url: request.url,
-        method: request.method,
-        ip: request.ip
-      }, 'Request error');
+      // Special handling for Content-Length mismatch errors - log extra details
+      if (error.message && error.message.includes('Content-Length')) {
+        app.log.error({
+          err: error,
+          url: request.url,
+          method: request.method,
+          ip: request.ip,
+          headers: {
+            'content-length': request.headers['content-length'],
+            'content-encoding': request.headers['content-encoding'],
+            'content-type': request.headers['content-type'],
+            'transfer-encoding': request.headers['transfer-encoding']
+          }
+        }, 'Content-Length mismatch error - possible compression or network issue');
+      } else {
+        // Log full error details for debugging
+        app.log.error({
+          err: error,
+          url: request.url,
+          method: request.method,
+          ip: request.ip
+        }, 'Request error');
+      }
 
       // In production, send generic error messages
       // In development, include more details for debugging
