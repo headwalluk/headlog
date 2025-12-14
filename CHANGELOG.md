@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2025-12-14
+
+### Fixed
+
+- **Upstream Sync**: Updated upstream batch sync to use new `POST /api/logs` endpoint (was still using deprecated `POST /logs`)
+  - Fixes hierarchical aggregation failures after Milestone 1 API restructuring
+  - Required for multi-datacenter log forwarding to work correctly
+
 ## [1.8.1] - 2025-12-14
 
 ### Changed

@@ -124,7 +124,7 @@ async function postToUpstream(payload, config) {
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${config.upstream.server}/logs`, {
+    const response = await fetch(`${config.upstream.server}/api/logs`, {
       method: 'POST',
       headers,
       body,
