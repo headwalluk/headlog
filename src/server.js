@@ -11,6 +11,7 @@ const staticPlugin = require('@fastify/static');
 const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 const { initDatabase, closeDatabase } = require('./config/database');
 const { authenticate } = require('./middleware/auth');
 const MySQLSessionStore = require('./config/sessionStore');
@@ -134,11 +135,21 @@ async function start() {
     app.addContentTypeParser('application/json', function (request, payload, done) {
       const chunks = [];
       
-      payload.on('data', chunk => {
+      // Check if we need to decompress (gzip or deflate)
+      const encoding = request.headers['content-encoding'];
+      let stream = payload;
+      
+      if (encoding === 'gzip') {
+        stream = payload.pipe(zlib.createGunzip());
+      } else if (encoding === 'deflate') {
+        stream = payload.pipe(zlib.createInflate());
+      }
+      
+      stream.on('data', chunk => {
         chunks.push(chunk);
       });
       
-      payload.on('end', () => {
+      stream.on('end', () => {
         try {
           const body = Buffer.concat(chunks).toString('utf8');
           const json = JSON.parse(body);
@@ -149,7 +160,7 @@ async function start() {
         }
       });
       
-      payload.on('error', (err) => {
+      stream.on('error', (err) => {
         done(err, undefined);
       });
     });
