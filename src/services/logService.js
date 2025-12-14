@@ -87,8 +87,8 @@ async function ingestLogs(logRecords) {
       // Get host ID from batch-fetched map
       const hostId = hostMap.get(record.host);
 
-      // Process remote IP (strip port if configured)
-      let remoteIP = record.remote || null;
+      // Process remote IP (try 'remote' first, then 'client', strip port if configured)
+      let remoteIP = record.remote || record.client || null;
       if (remoteIP && config.logProcessing.stripPortFromRemoteIP) {
         remoteIP = stripPortFromIP(remoteIP);
       }
