@@ -1,0 +1,305 @@
+<%- include('../partials/head', { title: 'Log Explorer' }) %>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../partials/header') %>
+    </div>
+    <div class="row">
+      <%- include('../partials/sidebar', { user, navigationMenu, currentPath: '/logs' }) %>
+      
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">
+            <i class="bi bi-journal-text text-primary"></i> Log Explorer
+          </h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
+              <i class="bi bi-download"></i> Export
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <form method="GET" action="/logs" id="filterForm">
+              <div class="row g-3">
+                <!-- Date Range -->
+                <div class="col-md-3">
+                  <label for="dateRange" class="form-label">Date Range</label>
+                  <select class="form-select" id="dateRange" name="dateRange">
+                    <option value="24h" <%= dateRange === '24h' ? 'selected' : '' %>>Last 24 Hours</option>
+                    <option value="7d" <%= dateRange === '7d' || !dateRange ? 'selected' : '' %>>Last 7 Days</option>
+                    <option value="30d" <%= dateRange === '30d' ? 'selected' : '' %>>Last 30 Days</option>
+                    <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
+                  </select>
+                </div>
+
+                <!-- Custom Date Inputs (shown when Custom selected) -->
+                <div class="col-md-3" id="customDateInputs" style="<%= dateRange === 'custom' ? '' : 'display: none;' %>">
+                  <label for="from" class="form-label">From</label>
+                  <input type="datetime-local" class="form-control" id="from" name="from" value="<%= from || '' %>">
+                </div>
+                <div class="col-md-3" id="customDateInputsTo" style="<%= dateRange === 'custom' ? '' : 'display: none;' %>">
+                  <label for="to" class="form-label">To</label>
+                  <input type="datetime-local" class="form-control" id="to" name="to" value="<%= to || '' %>">
+                </div>
+
+                <!-- Log Type -->
+                <div class="col-md-2">
+                  <label for="type" class="form-label">Log Type</label>
+                  <select class="form-select" id="type" name="type">
+                    <option value="" <%= !type ? 'selected' : '' %>>All Types</option>
+                    <option value="access" <%= type === 'access' ? 'selected' : '' %>>Access</option>
+                    <option value="error" <%= type === 'error' ? 'selected' : '' %>>Error</option>
+                  </select>
+                </div>
+
+                <!-- Website -->
+                <div class="col-md-3">
+                  <label for="website" class="form-label">Website</label>
+                  <select class="form-select" id="website" name="website">
+                    <option value="" <%= !website ? 'selected' : '' %>>All Websites</option>
+                    <% filterOptions.websites.forEach(w => { %>
+                      <option value="<%= w.id %>" <%= website == w.id ? 'selected' : '' %>><%= w.domain %></option>
+                    <% }); %>
+                  </select>
+                </div>
+
+                <!-- Host -->
+                <div class="col-md-3">
+                  <label for="host" class="form-label">Host</label>
+                  <select class="form-select" id="host" name="host">
+                    <option value="" <%= !host ? 'selected' : '' %>>All Hosts</option>
+                    <% filterOptions.hosts.forEach(h => { %>
+                      <option value="<%= h.id %>" <%= host == h.id ? 'selected' : '' %>><%= h.hostname %></option>
+                    <% }); %>
+                  </select>
+                </div>
+
+                <!-- HTTP Code -->
+                <div class="col-md-2">
+                  <label for="code" class="form-label">HTTP Code</label>
+                  <select class="form-select" id="code" name="code">
+                    <option value="" <%= !code ? 'selected' : '' %>>All Codes</option>
+                    <optgroup label="2xx Success">
+                      <% filterOptions.codesByCategory['2xx'].forEach(c => { %>
+                        <option value="<%= c.id %>" <%= code == c.id ? 'selected' : '' %>><%= c.code %> - <%= c.description %></option>
+                      <% }); %>
+                    </optgroup>
+                    <optgroup label="3xx Redirection">
+                      <% filterOptions.codesByCategory['3xx'].forEach(c => { %>
+                        <option value="<%= c.id %>" <%= code == c.id ? 'selected' : '' %>><%= c.code %> - <%= c.description %></option>
+                      <% }); %>
+                    </optgroup>
+                    <optgroup label="4xx Client Error">
+                      <% filterOptions.codesByCategory['4xx'].forEach(c => { %>
+                        <option value="<%= c.id %>" <%= code == c.id ? 'selected' : '' %>><%= c.code %> - <%= c.description %></option>
+                      <% }); %>
+                    </optgroup>
+                    <optgroup label="5xx Server Error">
+                      <% filterOptions.codesByCategory['5xx'].forEach(c => { %>
+                        <option value="<%= c.id %>" <%= code == c.id ? 'selected' : '' %>><%= c.code %> - <%= c.description %></option>
+                      <% }); %>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <!-- Remote IP -->
+                <div class="col-md-2">
+                  <label for="remote" class="form-label">Remote IP</label>
+                  <input type="text" class="form-control" id="remote" name="remote" placeholder="192.168.1.1" value="<%= remote || '' %>">
+                </div>
+
+                <!-- Search -->
+                <div class="col-md-4">
+                  <label for="search" class="form-label">Search</label>
+                  <input type="text" class="form-control" id="search" name="search" placeholder="Search URLs, messages..." value="<%= search || '' %>">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> Apply Filters
+                  </button>
+                  <a href="/logs" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Clear All
+                  </a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <p class="text-muted mb-0">
+            Showing <%= logs.length > 0 ? ((page - 1) * limit + 1) : 0 %> 
+            to <%= Math.min(page * limit, total) %> 
+            of <%= total.toLocaleString() %> log records
+          </p>
+          <div class="btn-group btn-group-sm" role="group">
+            <input type="radio" class="btn-check" name="viewMode" id="tableView" checked>
+            <label class="btn btn-outline-secondary" for="tableView"><i class="bi bi-table"></i></label>
+            <input type="radio" class="btn-check" name="viewMode" id="compactView">
+            <label class="btn btn-outline-secondary" for="compactView"><i class="bi bi-list"></i></label>
+          </div>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="table-responsive">
+          <table class="table table-hover table-sm" id="logsTable">
+            <thead class="table-light">
+              <tr>
+                <th>Timestamp</th>
+                <th>Type</th>
+                <th>Website</th>
+                <th class="d-none d-lg-table-cell">Host</th>
+                <th>Code</th>
+                <th class="d-none d-md-table-cell">Remote IP</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (logs.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox display-4"></i>
+                    <p class="mt-3">No log records found matching your filters.</p>
+                    <a href="/logs" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                  </td>
+                </tr>
+              <% } else { %>
+                <% logs.forEach(log => { %>
+                  <tr class="log-row" data-log-id="<%= log.id %>" style="cursor: pointer;">
+                    <td class="text-nowrap">
+                      <small><%= new Date(log.timestamp).toLocaleString() %></small>
+                    </td>
+                    <td>
+                      <% if (log.log_type === 'access') { %>
+                        <span class="badge bg-info">Access</span>
+                      <% } else { %>
+                        <span class="badge bg-danger">Error</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <small><%= log.website_name %></small>
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                      <small><%= log.hostname %></small>
+                    </td>
+                    <td>
+                      <% const codeNum = parseInt(log.code); %>
+                      <% if (codeNum >= 200 && codeNum < 300) { %>
+                        <span class="badge bg-success"><%= log.code %></span>
+                      <% } else if (codeNum >= 300 && codeNum < 400) { %>
+                        <span class="badge bg-info"><%= log.code %></span>
+                      <% } else if (codeNum >= 400 && codeNum < 500) { %>
+                        <span class="badge bg-warning text-dark"><%= log.code %></span>
+                      <% } else if (codeNum >= 500) { %>
+                        <span class="badge bg-danger"><%= log.code %></span>
+                      <% } else { %>
+                        <span class="badge bg-secondary"><%= log.code %></span>
+                      <% } %>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                      <small><%= log.remote || '-' %></small>
+                    </td>
+                    <td>
+                      <small>
+                        <% if (log.parsed_data) { %>
+                          <% if (log.log_type === 'access' && log.parsed_data.request) { %>
+                            <%= log.parsed_data.request.method || 'GET' %> <%= (log.parsed_data.request.url || '').substring(0, 50) %><%= (log.parsed_data.request.url || '').length > 50 ? '...' : '' %>
+                          <% } else if (log.log_type === 'error' && log.parsed_data.message) { %>
+                            <%= log.parsed_data.message.substring(0, 60) %><%= log.parsed_data.message.length > 60 ? '...' : '' %>
+                          <% } else { %>
+                            <span class="text-muted">No details available</span>
+                          <% } %>
+                        <% } else { %>
+                          <span class="text-muted">Unable to parse</span>
+                        <% } %>
+                      </small>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <% if (totalPages > 1) { %>
+          <nav aria-label="Log pagination">
+            <ul class="pagination justify-content-center">
+              <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?<%= new URLSearchParams({...filters, page: page - 1}).toString() %>">Previous</a>
+              </li>
+              
+              <% const maxPages = 5; %>
+              <% const startPage = Math.max(1, page - Math.floor(maxPages / 2)); %>
+              <% const endPage = Math.min(totalPages, startPage + maxPages - 1); %>
+              
+              <% if (startPage > 1) { %>
+                <li class="page-item">
+                  <a class="page-link" href="?<%= new URLSearchParams({...filters, page: 1}).toString() %>">1</a>
+                </li>
+                <% if (startPage > 2) { %>
+                  <li class="page-item disabled"><span class="page-link">...</span></li>
+                <% } %>
+              <% } %>
+              
+              <% for (let i = startPage; i <= endPage; i++) { %>
+                <li class="page-item <%= i === page ? 'active' : '' %>">
+                  <a class="page-link" href="?<%= new URLSearchParams({...filters, page: i}).toString() %>"><%= i %></a>
+                </li>
+              <% } %>
+              
+              <% if (endPage < totalPages) { %>
+                <% if (endPage < totalPages - 1) { %>
+                  <li class="page-item disabled"><span class="page-link">...</span></li>
+                <% } %>
+                <li class="page-item">
+                  <a class="page-link" href="?<%= new URLSearchParams({...filters, page: totalPages}).toString() %>"><%= totalPages %></a>
+                </li>
+              <% } %>
+              
+              <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?<%= new URLSearchParams({...filters, page: page + 1}).toString() %>">Next</a>
+              </li>
+            </ul>
+          </nav>
+        <% } %>
+      </main>
+    </div>
+  </div>
+
+  <!-- Log Detail Modal -->
+  <div class="modal fade" id="logDetailModal" tabindex="-1" aria-labelledby="logDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logDetailModalLabel">
+            <span id="modalLogType"></span> Log Details
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="logDetailContent">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page-specific JavaScript -->
+  <script src="/static/js/log-explorer.js"></script>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

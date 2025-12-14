@@ -279,6 +279,49 @@ async function start() {
       app.log.info('Web UI configured successfully');
     }
 
+    // Global error handler - prevent internal error leaks
+    app.setErrorHandler((error, request, reply) => {
+      // Log full error details for debugging
+      app.log.error({
+        err: error,
+        url: request.url,
+        method: request.method,
+        ip: request.ip
+      }, 'Request error');
+
+      // In production, send generic error messages
+      // In development, include more details for debugging
+      if (config.isProduction) {
+        // Production: Generic error message, no internal details
+        const statusCode = error.statusCode || 500;
+        
+        if (statusCode >= 500) {
+          // Server errors: completely generic message
+          return reply.code(statusCode).send({
+            statusCode,
+            error: 'Internal Server Error',
+            message: 'An error occurred processing your request'
+          });
+        } else {
+          // Client errors (4xx): can include error message
+          return reply.code(statusCode).send({
+            statusCode,
+            error: error.name || 'Error',
+            message: error.message || 'Bad Request'
+          });
+        }
+      } else {
+        // Development: Include full error details for debugging
+        return reply.code(error.statusCode || 500).send({
+          statusCode: error.statusCode || 500,
+          error: error.name || 'Error',
+          message: error.message,
+          code: error.code,
+          stack: error.stack
+        });
+      }
+    });
+
     // Health check endpoint (no auth required)
     app.get('/health', async (request, reply) => {
       return reply.code(200).send({
