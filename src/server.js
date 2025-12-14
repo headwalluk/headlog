@@ -304,8 +304,8 @@ async function start() {
       // For /api routes, check for session auth first (for browser requests)
       // then fall back to API key auth
       if (request.url.startsWith('/api')) {
-        // If there's a valid session, allow the request through
-        if (request.session && request.session.user_id) {
+        // Only check for session auth if UI is enabled (performance optimization)
+        if (config.ui.enabled && request.session && request.session.user_id) {
           const authService = require('./services/authService');
           const user = await authService.validateSession(request.session.user_id);
           if (user) {
@@ -314,7 +314,7 @@ async function start() {
           }
         }
         
-        // No valid session - require API key
+        // No valid session (or UI disabled) - require API key
         await authenticate(request, reply);
       }
     });

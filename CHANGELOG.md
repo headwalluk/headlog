@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2025-12-14
+
+### Changed
+
+- **Performance Optimization**: API authentication now skips session validation when `UI_ENABLED=false`
+  - Eliminates unnecessary database queries in API-only mode
+  - Improves response time for log ingestion endpoints
+  - More efficient for production deployments without web UI
+
+### Fixed
+
+- API key authentication flow optimized for production API-only deployments
+
 ## [1.8.0] - 2025-12-13
 
 ### Added
