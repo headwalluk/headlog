@@ -40,15 +40,7 @@ const app = fastify({
       level: config.logging.level
     },
   trustProxy: true,
-  bodyLimit: config.server.bodyLimit,
-  // Disable strict Content-Length validation to support compressed requests
-  // Fluent Bit sends gzipped data with Content-Length for compressed size,
-  // but Fastify decompresses and compares to uncompressed size (mismatch)
-  disableRequestLogging: false,
-  ignoreTrailingSlash: true,
-  // Allow Content-Length mismatches for compressed requests
-  onProtoPoisoning: 'remove',
-  onConstructorPoisoning: 'remove'
+  bodyLimit: config.server.bodyLimit
 });
 
 /**
