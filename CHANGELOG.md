@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.3] - 2025-12-14
+
+### Security
+
+- **Error Handling**: Added global error handler to prevent internal error details from leaking in production
+  - Production mode returns generic error messages (no file paths, error codes, or stack traces)
+  - Development mode still includes full error details for debugging
+  - All errors logged server-side for troubleshooting
+
+### Fixed
+
+- **Log Processing**: Remote IP detection now checks `remote` property first, then falls back to `client` property
+  - Supports both Apache error log variants
+  - Port stripping applies to both fields when `STRIP_PORT_FROM_REMOTE_IP=true`
+- **Git Repository**: Fixed `.gitignore` to not ignore `src/views/logs/` directory
+  - Changed `logs/` to `/logs/` to only match root-level logs directory
+  - Preserves source code structure in repository
+
 ## [1.8.2] - 2025-12-14
 
 ### Fixed
