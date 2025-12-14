@@ -39,7 +39,15 @@ const app = fastify({
       level: config.logging.level
     },
   trustProxy: true,
-  bodyLimit: config.server.bodyLimit
+  bodyLimit: config.server.bodyLimit,
+  // Disable strict Content-Length validation to support compressed requests
+  // Fluent Bit sends gzipped data with Content-Length for compressed size,
+  // but Fastify decompresses and compares to uncompressed size (mismatch)
+  disableRequestLogging: false,
+  ignoreTrailingSlash: true,
+  // Allow Content-Length mismatches for compressed requests
+  onProtoPoisoning: 'remove',
+  onConstructorPoisoning: 'remove'
 });
 
 /**
@@ -117,6 +125,33 @@ async function start() {
       threshold: 1024, // Only compress responses > 1KB
       // Decompression of requests is handled automatically by Fastify's body parser
       requestEncodings: ['gzip', 'deflate'] // Support compressed incoming requests
+    });
+
+    // Custom content type parser to handle compressed JSON without Content-Length validation
+    // This fixes the issue where Fluent Bit sends gzipped data with Content-Length for
+    // the compressed size, but Fastify validates against the uncompressed size
+    app.removeContentTypeParser(['application/json']);
+    app.addContentTypeParser('application/json', function (request, payload, done) {
+      const chunks = [];
+      
+      payload.on('data', chunk => {
+        chunks.push(chunk);
+      });
+      
+      payload.on('end', () => {
+        try {
+          const body = Buffer.concat(chunks).toString('utf8');
+          const json = JSON.parse(body);
+          done(null, json);
+        } catch (err) {
+          err.statusCode = 400;
+          done(err, undefined);
+        }
+      });
+      
+      payload.on('error', (err) => {
+        done(err, undefined);
+      });
     });
 
     // Add preParsing hook to log body parsing issues
