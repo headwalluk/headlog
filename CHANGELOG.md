@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2025-12-14
+
+### Fixed
+
+- **Fluent Bit Integration**: Resolved Content-Length mismatch errors with gzipped log ingestion
+  - Fluent Bit sends gzipped JSON with Content-Length header representing compressed size
+  - Fastify's default body parser was decompressing then validating Content-Length against uncompressed size
+  - Implemented custom JSON content-type parser with manual gzip/deflate decompression using Node.js zlib
+  - Parser checks Content-Encoding header and pipes payload through appropriate decompression stream
+  - Bypasses Fastify's Content-Length validation entirely, eliminating FST_ERR_CTP_INVALID_CONTENT_LENGTH errors
+  - Enables production-scale log ingestion from multiple Fluent Bit agents with standard gzip compression
+  - Supports both gzip and deflate encodings, gracefully handles uncompressed payloads
+
+### Changed
+
+- **Error Handling**: Enhanced global error handler with special logging for Content-Length mismatch debugging
+  - Logs full request headers (content-length, content-encoding, content-type, transfer-encoding) when Content-Length errors occur
+  - Aids troubleshooting compression-related ingestion issues
+
+### Removed
+
+- Cleaned up deprecated Fastify configuration options (ignoreTrailingSlash, onProtoPoisoning, onConstructorPoisoning)
+  - Eliminates FSTDEP022 deprecation warnings
+  - Returns to minimal, stable Fastify initialization (trustProxy and bodyLimit only)
+
 ## [1.8.3] - 2025-12-14
 
 ### Security

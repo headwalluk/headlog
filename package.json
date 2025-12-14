@@ -1,6 +1,6 @@
 {
   "name": "headlog",
-  "version": "1.8.3",
+  "version": "1.9.0",
   "description": "Centralised Apache log aggregation system",
   "main": "src/server.js",
   "scripts": {

@@ -4,17 +4,20 @@
 
 **Goal:** Transform headlog from CLI-only log ingestion system to full-featured web-based administration platform with security analysis capabilities.
 
-**Current State (v1.5.1):**
+**Current State (v1.9.0):**
 
-- ✅ Log ingestion via POST /logs (API key auth)
+- ✅ Log ingestion via POST /api/logs (API key auth)
 - ✅ Hierarchical aggregation (upstream sync)
 - ✅ Storage optimizations (BINARY(16) UUIDs, HTTP code caching)
-- ✅ CLI for API key management
+- ✅ CLI for API key and user management
 - ✅ Basic housekeeping (log retention)
-- ❌ No user accounts or sessions
-- ❌ No web UI
-- ❌ No role-based access control
-- ❌ No security analysis
+- ✅ User accounts with password authentication
+- ✅ Session-based web UI
+- ✅ Role-based access control (RBAC)
+- ✅ Website, Host, and Role management interfaces
+- ✅ Log Explorer with comprehensive filtering
+- ✅ Production-ready Fluent Bit integration (gzip compression support)
+- ❌ Security analysis (planned for future releases)
 
 **Target State (v2.0.0):**
 
