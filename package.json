@@ -1,8 +1,11 @@
 {
   "name": "headlog",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Centralised Apache log aggregation system",
   "main": "src/server.js",
+  "bin": {
+    "headlog": "./bin/headlog"
+  },
   "scripts": {
     "start": "NODE_ENV=production node src/server.js",
     "dev": "NODE_ENV=development nodemon src/server.js",

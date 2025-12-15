@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2025-12-15
+
+### Changed
+
+- **CLI Refactoring**: Restructured monolithic cli.js (909 lines) into modular command structure
+  - Created `bin/headlog` executable entry point
+  - Organized commands into logical modules in `src/cli/commands/`:
+    - `users.js` - User management commands (3 commands)
+    - `keys.js` - API key management commands (6 commands)
+    - `schema.js` - Database migration commands (3 commands)
+    - `roles.js` - Role management commands (4 commands)
+    - `capabilities.js` - Capability management commands (1 command)
+  - Added `bin` field to package.json for npm executable installation
+  - Updated all documentation to use new `bin/headlog` command format
+
+- **CLI Table Formatting**: Standardized output formatting across all CLI commands
+  - Applied `cli-table3` formatting to `keys:list` command
+  - Applied `cli-table3` formatting to `schema:history` command
+  - All tabular CLI output now uses consistent professional table formatting
+  - Improved readability with proper column widths and borders
+
+### Removed
+
+- Deleted monolithic `cli.js` file (replaced by modular structure)
+
 ## [1.9.0] - 2025-12-14
 
 ### Fixed

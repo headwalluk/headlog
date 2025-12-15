@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+/**
+ * Headlog CLI Entry Point
+ * 
+ * This is the executable entry point for the Headlog CLI.
+ * It loads the main CLI program and executes commands.
+ */
+
+// Load config early (validates DB credentials)
+require('../src/config');
+
+// Load and run the CLI
+require('../src/cli');

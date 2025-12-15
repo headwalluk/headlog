@@ -1,9 +1,9 @@
 # CLI Reference
 
-The Headlog CLI provides command-line tools for managing API keys, user accounts, roles, capabilities, and database migrations. All commands run directly through Node.js:
+The Headlog CLI provides command-line tools for managing API keys, user accounts, roles, capabilities, and database migrations. All commands are run using the headlog executable:
 
 ```bash
-node cli.js <command> [options]
+bin/headlog <command> [options]
 ```
 
 ---
@@ -46,7 +46,7 @@ Generate and store a new API key.
 **Usage:**
 
 ```bash
-node cli.js keys:create [options]
+bin/headlog keys:create [options]
 ```
 
 **Options:**
@@ -56,7 +56,7 @@ node cli.js keys:create [options]
 **Example:**
 
 ```bash
-node cli.js keys:create --description "Production web servers"
+bin/headlog keys:create --description "Production web servers"
 ```
 
 **Output:**
@@ -88,7 +88,7 @@ List all API keys (active by default).
 **Usage:**
 
 ```bash
-node cli.js keys:list [options]
+bin/headlog keys:list [options]
 ```
 
 **Options:**
@@ -99,10 +99,10 @@ node cli.js keys:list [options]
 
 ```bash
 # Show only active keys
-node cli.js keys:list
+bin/headlog keys:list
 
 # Show all keys (including inactive)
-node cli.js keys:list --show-inactive
+bin/headlog keys:list --show-inactive
 ```
 
 **Output:**
@@ -132,7 +132,7 @@ Reactivate a previously deactivated API key.
 **Usage:**
 
 ```bash
-node cli.js keys:activate <keyId>
+bin/headlog keys:activate <keyId>
 ```
 
 **Arguments:**
@@ -142,7 +142,7 @@ node cli.js keys:activate <keyId>
 **Example:**
 
 ```bash
-node cli.js keys:activate 2
+bin/headlog keys:activate 2
 ```
 
 **Output:**
@@ -166,7 +166,7 @@ Deactivate an API key without permanently deleting it.
 **Usage:**
 
 ```bash
-node cli.js keys:deactivate <keyId>
+bin/headlog keys:deactivate <keyId>
 ```
 
 **Arguments:**
@@ -176,7 +176,7 @@ node cli.js keys:deactivate <keyId>
 **Example:**
 
 ```bash
-node cli.js keys:deactivate 2
+bin/headlog keys:deactivate 2
 ```
 
 **Output:**
@@ -201,7 +201,7 @@ Permanently delete an API key from the database.
 **Usage:**
 
 ```bash
-node cli.js keys:delete <keyId>
+bin/headlog keys:delete <keyId>
 ```
 
 **Arguments:**
@@ -211,7 +211,7 @@ node cli.js keys:delete <keyId>
 **Example:**
 
 ```bash
-node cli.js keys:delete 2
+bin/headlog keys:delete 2
 ```
 
 **Output:**
@@ -235,7 +235,7 @@ Show detailed statistics and information for a specific API key.
 **Usage:**
 
 ```bash
-node cli.js keys:stats <keyId>
+bin/headlog keys:stats <keyId>
 ```
 
 **Arguments:**
@@ -245,7 +245,7 @@ node cli.js keys:stats <keyId>
 **Example:**
 
 ```bash
-node cli.js keys:stats 1
+bin/headlog keys:stats 1
 ```
 
 **Output:**
@@ -280,7 +280,7 @@ Create a new superuser account (bootstrap command for initial setup).
 **Usage:**
 
 ```bash
-node cli.js users:create-admin [options]
+bin/headlog users:create-admin [options]
 ```
 
 **Options:**
@@ -294,10 +294,10 @@ node cli.js users:create-admin [options]
 
 ```bash
 # Interactive mode (recommended)
-node cli.js users:create-admin
+bin/headlog users:create-admin
 
 # Non-interactive mode
-node cli.js users:create-admin \
+bin/headlog users:create-admin \
   --username admin \
   --email admin@example.com \
   --password "SecureP@ssw0rd!" \
@@ -349,7 +349,7 @@ List all user accounts with status and login information.
 **Usage:**
 
 ```bash
-node cli.js users:list [options]
+bin/headlog users:list [options]
 ```
 
 **Options:**
@@ -361,13 +361,13 @@ node cli.js users:list [options]
 
 ```bash
 # List all users
-node cli.js users:list
+bin/headlog users:list
 
 # List only active users
-node cli.js users:list --active-only
+bin/headlog users:list --active-only
 
 # List only superusers
-node cli.js users:list --superuser-only
+bin/headlog users:list --superuser-only
 ```
 
 **Output:**
@@ -399,7 +399,7 @@ Reset a user's password (useful for account recovery).
 **Usage:**
 
 ```bash
-node cli.js users:reset-password <user-id-or-username> [options]
+bin/headlog users:reset-password <user-id-or-username> [options]
 ```
 
 **Arguments:**
@@ -415,13 +415,13 @@ node cli.js users:reset-password <user-id-or-username> [options]
 
 ```bash
 # Interactive mode (recommended)
-node cli.js users:reset-password admin
+bin/headlog users:reset-password admin
 
 # By user ID
-node cli.js users:reset-password 1
+bin/headlog users:reset-password 1
 
 # Non-interactive mode
-node cli.js users:reset-password admin \
+bin/headlog users:reset-password admin \
   --password "NewSecureP@ss!" \
   --non-interactive
 ```
@@ -461,7 +461,7 @@ List all roles in the system.
 **Usage:**
 
 ```bash
-node cli.js roles:list [options]
+bin/headlog roles:list [options]
 ```
 
 **Options:**
@@ -473,13 +473,13 @@ node cli.js roles:list [options]
 
 ```bash
 # List all roles
-node cli.js roles:list
+bin/headlog roles:list
 
 # List only system roles
-node cli.js roles:list --system-only
+bin/headlog roles:list --system-only
 
 # List only custom roles
-node cli.js roles:list --custom-only
+bin/headlog roles:list --custom-only
 ```
 
 **Output:**
@@ -510,7 +510,7 @@ Show detailed information about a specific role, including all assigned capabili
 **Usage:**
 
 ```bash
-node cli.js roles:show <role-id-or-name>
+bin/headlog roles:show <role-id-or-name>
 ```
 
 **Arguments:**
@@ -521,10 +521,10 @@ node cli.js roles:show <role-id-or-name>
 
 ```bash
 # By role ID
-node cli.js roles:show 1
+bin/headlog roles:show 1
 
 # By role name
-node cli.js roles:show Administrator
+bin/headlog roles:show Administrator
 ```
 
 **Output:**
@@ -575,7 +575,7 @@ Assign a role to a user account.
 **Usage:**
 
 ```bash
-node cli.js roles:assign <user-id> <role-id-or-name> [options]
+bin/headlog roles:assign <user-id> <role-id-or-name> [options]
 ```
 
 **Arguments:**
@@ -591,13 +591,13 @@ node cli.js roles:assign <user-id> <role-id-or-name> [options]
 
 ```bash
 # Assign by role name
-node cli.js roles:assign 2 Analyst
+bin/headlog roles:assign 2 Analyst
 
 # Assign by role ID
-node cli.js roles:assign 2 2
+bin/headlog roles:assign 2 2
 
 # With audit trail
-node cli.js roles:assign 2 Analyst --assigned-by 1
+bin/headlog roles:assign 2 Analyst --assigned-by 1
 ```
 
 **Output:**
@@ -628,7 +628,7 @@ Remove a role from a user account.
 **Usage:**
 
 ```bash
-node cli.js roles:remove <user-id> <role-id-or-name>
+bin/headlog roles:remove <user-id> <role-id-or-name>
 ```
 
 **Arguments:**
@@ -640,10 +640,10 @@ node cli.js roles:remove <user-id> <role-id-or-name>
 
 ```bash
 # Remove by role name
-node cli.js roles:remove 2 Analyst
+bin/headlog roles:remove 2 Analyst
 
 # Remove by role ID
-node cli.js roles:remove 2 2
+bin/headlog roles:remove 2 2
 ```
 
 **Output:**
@@ -678,7 +678,7 @@ List all available capabilities in the system.
 **Usage:**
 
 ```bash
-node cli.js capabilities:list [options]
+bin/headlog capabilities:list [options]
 ```
 
 **Options:**
@@ -690,13 +690,13 @@ node cli.js capabilities:list [options]
 
 ```bash
 # List all capabilities
-node cli.js capabilities:list
+bin/headlog capabilities:list
 
 # List only log-related capabilities
-node cli.js capabilities:list --category logs
+bin/headlog capabilities:list --category logs
 
 # List only dangerous capabilities
-node cli.js capabilities:list --dangerous-only
+bin/headlog capabilities:list --dangerous-only
 ```
 
 **Output:**
@@ -752,7 +752,7 @@ Run all pending database migrations.
 **Usage:**
 
 ```bash
-node cli.js schema:migrate
+bin/headlog schema:migrate
 ```
 
 **Output:**
@@ -811,7 +811,7 @@ Show current migration status without executing any migrations.
 **Usage:**
 
 ```bash
-node cli.js schema:status
+bin/headlog schema:status
 ```
 
 **Output:**
@@ -866,7 +866,7 @@ Show complete history of executed migrations.
 **Usage:**
 
 ```bash
-node cli.js schema:history [options]
+bin/headlog schema:history [options]
 ```
 
 **Options:**
@@ -877,10 +877,10 @@ node cli.js schema:history [options]
 
 ```bash
 # Show all executed migrations
-node cli.js schema:history
+bin/headlog schema:history
 
 # Show only failed migrations
-node cli.js schema:history --failed
+bin/headlog schema:history --failed
 ```
 
 **Output:**
@@ -924,16 +924,16 @@ node cli.js schema:history --failed
 
 ```bash
 # 1. Create admin account (first user)
-node cli.js users:create-admin
+bin/headlog users:create-admin
 
 # 2. Generate API key for Fluent Bit
-node cli.js keys:create --description "Web server log ingestion"
+bin/headlog keys:create --description "Web server log ingestion"
 
 # 3. Check database migration status
-node cli.js schema:status
+bin/headlog schema:status
 
 # 4. Run pending migrations if needed
-node cli.js schema:migrate
+bin/headlog schema:migrate
 ```
 
 ### User Onboarding
@@ -942,43 +942,43 @@ node cli.js schema:migrate
 # 1. Create user through web UI (not available via CLI yet)
 
 # 2. Assign appropriate role
-node cli.js roles:assign <user-id> Analyst
+bin/headlog roles:assign <user-id> Analyst
 
 # 3. Verify role assignment
-node cli.js roles:show Analyst
+bin/headlog roles:show Analyst
 ```
 
 ### API Key Rotation
 
 ```bash
 # 1. Create new API key
-node cli.js keys:create --description "Production - New"
+bin/headlog keys:create --description "Production - New"
 
 # 2. Update Fluent Bit configuration with new key
 
 # 3. Test new key with test log ingestion
 
 # 4. Deactivate old key
-node cli.js keys:deactivate <old-key-id>
+bin/headlog keys:deactivate <old-key-id>
 
 # 5. After verification period, delete old key
-node cli.js keys:delete <old-key-id>
+bin/headlog keys:delete <old-key-id>
 ```
 
 ### Troubleshooting
 
 ```bash
 # Check if user account is active
-node cli.js users:list
+bin/headlog users:list
 
 # View user's assigned roles and capabilities
-node cli.js roles:show <role-name>
+bin/headlog roles:show <role-name>
 
 # Verify API key is active and not expired
-node cli.js keys:stats <key-id>
+bin/headlog keys:stats <key-id>
 
 # Check migration status if features not working
-node cli.js schema:status
+bin/headlog schema:status
 ```
 
 ---
@@ -994,7 +994,7 @@ Use exit codes in scripts:
 
 ```bash
 #!/bin/bash
-node cli.js schema:migrate
+bin/headlog schema:migrate
 if [ $? -eq 0 ]; then
   echo "Migrations successful, starting server..."
   npm start

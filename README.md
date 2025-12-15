@@ -1,6 +1,6 @@
 # Headlog
 
-[![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](https://github.com/headwalluk/headlog/releases)
+[![Version](https://img.shields.io/badge/version-1.10.0-blue.svg)](https://github.com/headwalluk/headlog/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 
@@ -73,7 +73,7 @@ cp .env.example .env
 mysql -u root -p < setup_database.sql
 
 # Generate API key
-node cli.js keys:create --description "Production"
+bin/headlog keys:create --description "Production"
 
 # Start server
 npm start
@@ -108,7 +108,7 @@ npm start
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Web Servers    │     │  Web Servers    │     │  Web Servers    │
+│  Web Server(s)  │     │  Web Server(s)  │     │  Web Server(s)  │
 │  (Fluent Bit)   │     │  (Fluent Bit)   │     │  (Fluent Bit)   │
 └────────┬────────┘     └────────┬────────┘     └────────┬────────┘
          │                       │                       │
@@ -117,14 +117,7 @@ npm start
   │  Headlog    │         │  Headlog    │         │  Headlog    │
   └──────┬──────┘         └──────┬──────┘         └──────┬──────┘
          │                       │                       │
-         └───────────┬───────────┴───────────┬───────────┘
-                     │                       │
-              ┌──────▼──────┐         ┌──────▼──────┐
-              │  National   │         │  National   │
-              │  Headlog    │         │  Headlog    │
-              └──────┬──────┘         └──────┬──────┘
-                     │                       │
-                     └───────────┬───────────┘
+         └───────────────────────+───────────────────────┘
                                  │
                           ┌──────▼──────┐
                           │   Global    │
@@ -160,15 +153,15 @@ Complete documentation available in the [`docs/`](docs/) directory:
 
 ```bash
 # API Key Management
-node cli.js keys:create --description "Production servers"
-node cli.js keys:list
-node cli.js keys:deactivate <id>
-node cli.js keys:delete <id>
+bin/headlog keys:create --description "Production servers"
+bin/headlog keys:list
+bin/headlog keys:deactivate <id>
+bin/headlog keys:delete <id>
 
 # Database Migrations
-node cli.js schema:status
-node cli.js schema:migrate
-node cli.js schema:history
+bin/headlog schema:status
+bin/headlog schema:migrate
+bin/headlog schema:history
 ```
 
 ## API Endpoints
